@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - EchoMe X</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/pages.css">
+    <link rel="stylesheet" href="css/utilities.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <nav class="navbar">
+                <div class="nav-container">
+                    <div class="nav-brand">
+                        <a href="index.html" class="nav-logo">
+                            <div class="logo-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2L2 7V10C2 16 6 20.5 12 22C18 20.5 22 16 22 10V7L12 2Z"/>
+                                </svg>
+                            </div>
+                            <span class="logo-text">EchoMe X</span>
+                        </a>
+                    </div>
+                    
+                    <ul class="nav-menu">
+                        <li><a href="index.html" class="nav-link">Home</a></li>
+                        <li><a href="chat.html" class="nav-link">Chat</a></li>
+                        <li><a href="analytics.html" class="nav-link active">Analytics</a></li>
+                    </ul>
+                    
+                    <button class="nav-toggle d-md-block d-none">
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                    </button>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Analytics Dashboard -->
+        <main class="analytics-page">
+            <div class="analytics-section">
+                <div class="container">
+                    <!-- Header -->
+                    <div class="analytics-header">
+                        <h1 class="analytics-title animate-fade-in">
+                            Twin Analytics
+                        </h1>
+                        <p class="analytics-subtitle animate-fade-in">
+                            Track your AI twin's performance and engagement metrics
+                        </p>
+                        <div class="analytics-tagline animate-fade-in">
+                            🚀 Your twin is becoming an influencer!
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="stats-grid animate-fade-in">
+                        <div class="stat-card hover-lift">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M16 4V2A2 2 0 0 0 14 0H10A2 2 0 0 0 8 2V4H3V6H5V19A3 3 0 0 0 8 22H16A3 3 0 0 0 19 19V6H21V4H16M10 2H14V4H10V2M17 19A1 1 0 0 1 16 20H8A1 1 0 0 1 7 19V6H17V19Z"/>
+                                </svg>
+                            </div>
+                            <div class="stat-value" id="followerCount">2.3K</div>
+                            <div class="stat-label">Followers</div>
+                            <div class="stat-trend positive">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7 14L12 9L17 14H7Z"/>
+                                </svg>
+                                +12.5%
+                            </div>
+                        </div>
+
+                        <div class="stat-card hover-lift">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.27 2 8.5C2 5.41 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.08C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.41 22 8.5C22 12.27 18.6 15.36 13.45 20.03L12 21.35Z"/>
+                                </svg>
+                            </div>
+                            <div class="stat-value" id="engagementRate">87.3%</div>
+                            <div class="stat-label">Engagement Rate</div>
+                            <div class="stat-trend positive">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7 14L12 9L17 14H7Z"/>
+                                </svg>
+                                +5.2%
+                            </div>
+                        </div>
+
+                        <div class="stat-card hover-lift">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M20 6L9 17L4 12L5.41 10.59L9 14.17L18.59 4.59L20 6Z"/>
+                                </svg>
+                            </div>
+                            <div class="stat-value" id="interactionCount">1.2K</div>
+                            <div class="stat-label">Total Interactions</div>
+                            <div class="stat-trend positive">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7 14L12 9L17 14H7Z"/>
+                                </svg>
+                                +18.7%
+                            </div>
+                        </div>
+
+                        <div class="stat-card hover-lift">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2A10 10 0 0 0 2 12A10 10 0 0 0 12 22A10 10 0 0 0 22 12A10 10 0 0 0 12 2M12 4A8 8 0 0 1 20 12A8 8 0 0 1 12 20A8 8 0 0 1 4 12A8 8 0 0 1 12 4M12 6A6 6 0 0 0 6 12A6 6 0 0 0 12 18A6 6 0 0 0 18 12A6 6 0 0 0 12 6Z"/>
+                                </svg>
+                            </div>
+                            <div class="stat-value" id="responseTime">1.2s</div>
+                            <div class="stat-label">Avg Response Time</div>
+                            <div class="stat-trend positive">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M17 14L12 19L7 14H17Z"/>
+                                </svg>
+                                -0.3s
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interaction Chart -->
+                    <div class="chart-container animate-fade-in">
+                        <div class="chart-header">
+                            <h2 class="chart-title">Interaction Analytics</h2>
+                            <p class="chart-subtitle">Daily interaction trends over the past week</p>
+                        </div>
+                        
+                        <div class="chart-placeholder" id="interactionChart">
+                            <div class="chart-mockup">
+                                <div class="chart-bar" style="height: 40%;"></div>
+                                <div class="chart-bar" style="height: 65%;"></div>
+                                <div class="chart-bar" style="height: 30%;"></div>
+                                <div class="chart-bar" style="height: 80%;"></div>
+                                <div class="chart-bar" style="height: 45%;"></div>
+                                <div class="chart-bar" style="height: 90%;"></div>
+                                <div class="chart-bar" style="height: 70%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Engagement Metrics -->
+                    <div class="grid grid-2 md:grid-1 animate-fade-in">
+                        <!-- Popular Topics -->
+                        <div class="card hover-lift">
+                            <div class="card-header">
+                                <h3 class="card-title">Popular Topics</h3>
+                                <p class="card-description">Most discussed subjects with your twin</p>
+                            </div>
+                            
+                            <div class="topic-list">
+                                <div class="topic-item">
+                                    <div class="topic-info">
+                                        <span class="topic-name">Technology</span>
+                                        <span class="topic-percentage">34%</span>
+                                    </div>
+                                    <div class="topic-bar">
+                                        <div class="topic-progress" style="width: 34%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="topic-item">
+                                    <div class="topic-info">
+                                        <span class="topic-name">Lifestyle</span>
+                                        <span class="topic-percentage">28%</span>
+                                    </div>
+                                    <div class="topic-bar">
+                                        <div class="topic-progress" style="width: 28%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="topic-item">
+                                    <div class="topic-info">
+                                        <span class="topic-name">Career</span>
+                                        <span class="topic-percentage">22%</span>
+                                    </div>
+                                    <div class="topic-bar">
+                                        <div class="topic-progress" style="width: 22%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="topic-item">
+                                    <div class="topic-info">
+                                        <span class="topic-name">Entertainment</span>
+                                        <span class="topic-percentage">16%</span>
+                                    </div>
+                                    <div class="topic-bar">
+                                        <div class="topic-progress" style="width: 16%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="card hover-lift">
+                            <div class="card-header">
+                                <h3 class="card-title">Recent Activity</h3>
+                                <p class="card-description">Latest interactions and updates</p>
+                            </div>
+                            
+                            <div class="activity-list">
+                                <div class="activity-item">
+                                    <div class="activity-icon">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9Z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="activity-content">
+                                        <span class="activity-title">New conversation started</span>
+                                        <span class="activity-time">2 minutes ago</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="activity-item">
+                                    <div class="activity-icon">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.27 2 8.5C2 5.41 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.08C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.41 22 8.5C22 12.27 18.6 15.36 13.45 20.03L12 21.35Z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="activity-content">
+                                        <span class="activity-title">50 new likes received</span>
+                                        <span class="activity-time">1 hour ago</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="activity-item">
+                                    <div class="activity-icon">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M16 6L18.29 8.29L13.41 13.17L9.41 9.17L2 16.59L3.41 18L9.41 12L13.41 16L19.71 9.71L22 12V6H16Z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="activity-content">
+                                        <span class="activity-title">Engagement rate increased</span>
+                                        <span class="activity-time">3 hours ago</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="activity-item">
+                                    <div class="activity-icon">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M16 4V2A2 2 0 0 0 14 0H10A2 2 0 0 0 8 2V4H3V6H5V19A3 3 0 0 0 8 22H16A3 3 0 0 0 19 19V6H21V4H16M10 2H14V4H10V2M17 19A1 1 0 0 1 16 20H8A1 1 0 0 1 7 19V6H17V19Z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="activity-content">
+                                        <span class="activity-title">100 new followers</span>
+                                        <span class="activity-time">6 hours ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="utils.js"></script>
+    <script src="analytics.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', async function() {
+  try {
+    console.log('🔄 Loading analytics data...');
+    const analytics = await window.echoAPI.getAnalytics();
+    console.log('Analytics data:', analytics);
+    
+    if (analytics.success) {
+      const data = analytics.data;
+      
+      // Update the stat cards with real data
+      updateStatCard('followerCount', formatNumber(data.followers));
+      updateStatCard('engagementRate', data.engagementRate + '%');
+      updateStatCard('interactionCount', formatNumber(data.totalInteractions));
+      updateStatCard('responseTime', data.averageResponseTime + 's');
+      
+      console.log('✅ Analytics updated with real data');
+    }
+  } catch (error) {
+    console.error('❌ Failed to load analytics:', error);
+    console.log('Using default values');
+  }
+});
+
+// Helper function to update stat cards
+function updateStatCard(elementId, value) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.textContent = value;
+    
+    // Add animation effect
+    element.style.transform = 'scale(1.1)';
+    setTimeout(() => {
+      element.style.transform = 'scale(1)';
+    }, 200);
+  }
+}
+
+// Helper function to format numbers (e.g., 2300 -> 2.3K)
+function formatNumber(num) {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K';
+  }
+  return num.toString();
+}
+
+// Optional: Add real-time updates every 30 seconds
+setInterval(async () => {
+  try {
+    const analytics = await window.echoAPI.getAnalytics();
+    if (analytics.success) {
+      const data = analytics.data;
+      updateStatCard('followerCount', formatNumber(data.followers));
+      updateStatCard('engagementRate', data.engagementRate + '%');
+      updateStatCard('interactionCount', formatNumber(data.totalInteractions));
+      updateStatCard('responseTime', data.averageResponseTime + 's');
+    }
+  } catch (error) {
+    console.log('Background analytics update failed:', error);
+  }
+}, 30000); // Update every 30 seconds
+</script>
+</body>
+</html>
+``` 

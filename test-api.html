@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>EchoMe X API Connection Test</h1>
+    
+    <div class="test-section">
+        <h2>Backend Health Check</h2>
+        <button onclick="testHealthCheck()">Test Health Endpoint</button>
+        <div id="health-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Train API Test</h2>
+        <button onclick="testTrainAPI()">Test Train Endpoint</button>
+        <div id="train-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Chat API Test</h2>
+        <button onclick="testChatAPI()">Test Chat Endpoint</button>
+        <div id="chat-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Analytics API Test</h2>
+        <button onclick="testAnalyticsAPI()">Test Analytics Endpoint</button>
+        <div id="analytics-result"></div>
+    </div>
+
+    <script src="frontend/utils.js"></script>
+    <script>
+        let testUserId = null;
+
+        async function testHealthCheck() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.innerHTML = '<p>Testing health endpoint...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3001/health');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ Health Check Passed</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Health Check Failed</h3>
+                        <p>Error: ${error.message}</p>
+                        <p>Make sure the backend server is running on port 3001</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testTrainAPI() {
+            const resultDiv = document.getElementById('train-result');
+            resultDiv.innerHTML = '<p>Testing train endpoint...</p>';
+            
+            const testData = {
+                name: "Test User",
+                persona: {
+                    traits: ["analytical", "creative", "tech-savvy"],
+                    communicationStyle: "Direct and technical, with occasional humor",
+                    background: "Software developer with 5 years experience in web development",
+                    interests: ["coding", "AI", "gaming"]
+                }
+            };
+            
+            try {
+                const response = await EchoMeUtils.makeAPICall('/api/train', {
+                    method: 'POST',
+                    body: JSON.stringify(testData)
+                });
+                
+                testUserId = response.userId;
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ Train API Test Passed</h3>
+                        <pre>${JSON.stringify(response, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Train API Test Failed</h3>
+                        <p>Error: ${error.message}</p>
+                        <pre>${JSON.stringify(error, null, 2)}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        async function testChatAPI() {
+            const resultDiv = document.getElementById('chat-result');
+            
+            if (!testUserId) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Chat API Test Failed</h3>
+                        <p>Please run the Train API test first to get a user ID</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>Testing chat endpoint...</p>';
+            
+            const testData = {
+                userId: testUserId,
+                message: "Hello, this is a test message",
+                conversationHistory: []
+            };
+            
+            try {
+                const response = await EchoMeUtils.makeAPICall('/api/chat', {
+                    method: 'POST',
+                    body: JSON.stringify(testData)
+                });
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ Chat API Test Passed</h3>
+                        <pre>${JSON.stringify(response, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Chat API Test Failed</h3>
+                        <p>Error: ${error.message}</p>
+                        <pre>${JSON.stringify(error, null, 2)}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        async function testAnalyticsAPI() {
+            const resultDiv = document.getElementById('analytics-result');
+            
+            if (!testUserId) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Analytics API Test Failed</h3>
+                        <p>Please run the Train API test first to get a user ID</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>Testing analytics endpoint...</p>';
+            
+            try {
+                const response = await EchoMeUtils.makeAPICall(`/api/analytics/${testUserId}`, {
+                    method: 'GET'
+                });
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ Analytics API Test Passed</h3>
+                        <pre>${JSON.stringify(response, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Analytics API Test Failed</h3>
+                        <p>Error: ${error.message}</p>
+                        <pre>${JSON.stringify(error, null, 2)}</pre>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

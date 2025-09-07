@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend-Backend Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #2a2a2a;
+        }
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background: #333;
+        }
+        .success {
+            border-left: 4px solid #10b981;
+        }
+        .error {
+            border-left: 4px solid #ef4444;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #333;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>EchoMe X Frontend-Backend Connection Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Backend Health Check</h2>
+        <button onclick="testHealthCheck()">Test Health Endpoint</button>
+        <div id="health-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Train API Test</h2>
+        <input type="text" id="test-name" placeholder="Enter name" value="Test User">
+        <textarea id="test-traits" placeholder="Enter traits">Friendly, creative, analytical</textarea>
+        <textarea id="test-communication" placeholder="Enter communication style">Casual and conversational</textarea>
+        <textarea id="test-background" placeholder="Enter background">Software developer with interests in AI and technology</textarea>
+        <button onclick="testTrainAPI()">Test Train Endpoint</button>
+        <div id="train-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Chat API Test</h2>
+        <input type="text" id="chat-user-id" placeholder="User ID (from train test)">
+        <input type="text" id="chat-message" placeholder="Enter message" value="Hello, how are you?">
+        <button onclick="testChatAPI()">Test Chat Endpoint</button>
+        <div id="chat-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Analytics API Test</h2>
+        <input type="text" id="analytics-user-id" placeholder="User ID (from train test)">
+        <button onclick="testAnalyticsAPI()">Test Analytics Endpoint</button>
+        <div id="analytics-result" class="result"></div>
+    </div>
+
+    <script src="frontend/utils.js"></script>
+    <script>
+        let testUserId = null;
+
+        async function testHealthCheck() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch(`${EchoMeUtils.API_BASE_URL}/health`);
+                const result = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <strong>✓ Health Check Passed</strong><br>
+                        Status: ${result.status}<br>
+                        Message: ${result.message}<br>
+                        Timestamp: ${result.timestamp}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>✗ Health Check Failed</strong><br>
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testTrainAPI() {
+            const resultDiv = document.getElementById('train-result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            const name = document.getElementById('test-name').value;
+            const traits = document.getElementById('test-traits').value.split(',').map(t => t.trim());
+            const communicationStyle = document.getElementById('test-communication').value;
+            const background = document.getElementById('test-background').value;
+            
+            const data = {
+                name,
+                persona: {
+                    traits,
+                    communicationStyle,
+                    background,
+                    interests: []
+                }
+            };
+            
+            try {
+                const result = await EchoMeUtils.makeAPICall('/api/train', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+                
+                testUserId = result.userId;
+                document.getElementById('chat-user-id').value = testUserId;
+                document.getElementById('analytics-user-id').value = testUserId;
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <strong>✓ Train API Success</strong><br>
+                        User ID: ${result.userId}<br>
+                        Message: ${result.message}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>✗ Train API Failed</strong><br>
+                        Error: ${error.message}<br>
+                        Code: ${error.code || 'Unknown'}
+                    </div>
+                `;
+            }
+        }
+
+        async function testChatAPI() {
+            const resultDiv = document.getElementById('chat-result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            const userId = document.getElementById('chat-user-id').value;
+            const message = document.getElementById('chat-message').value;
+            
+            if (!userId) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>✗ Chat API Failed</strong><br>
+                        Error: Please provide a User ID (run Train API test first)
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const result = await EchoMeUtils.makeAPICall('/api/chat', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        userId,
+                        message,
+                        conversationHistory: []
+                    })
+                });
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <strong>✓ Chat API Success</strong><br>
+                        Response: ${result.response}<br>
+                        Timestamp: ${result.timestamp}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>✗ Chat API Failed</strong><br>
+                        Error: ${error.message}<br>
+                        Code: ${error.code || 'Unknown'}
+                    </div>
+                `;
+            }
+        }
+
+        async function testAnalyticsAPI() {
+            const resultDiv = document.getElementById('analytics-result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            const userId = document.getElementById('analytics-user-id').value;
+            
+            if (!userId) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>✗ Analytics API Failed</strong><br>
+                        Error: Please provide a User ID (run Train API test first)
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const result = await EchoMeUtils.makeAPICall(`/api/analytics/${userId}`, {
+                    method: 'GET'
+                });
+                
+                const analytics = result.analytics;
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <strong>✓ Analytics API Success</strong><br>
+                        Followers: ${analytics.followers}<br>
+                        Engagement Rate: ${analytics.engagementRate}%<br>
+                        Total Interactions: ${analytics.totalInteractions}<br>
+                        Growth Rate: ${analytics.growthRate}%<br>
+                        Last Updated: ${analytics.lastUpdated}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>✗ Analytics API Failed</strong><br>
+                        Error: ${error.message}<br>
+                        Code: ${error.code || 'Unknown'}
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run health check on page load
+        window.addEventListener('DOMContentLoaded', testHealthCheck);
+    </script>
+</body>
+</html>
