@@ -1,10 +1,22 @@
 // Shared utilities for EchoMe X frontend
 // This file contains common functions used across multiple pages
 
-// API Configuration
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:3001'
-    : 'https://your-backend-url.com'; // Replace with actual production URL when deploying
+// API Configuration - Updated for production
+const API_BASE_URL = (() => {
+    // Check if we're in development
+    const isDevelopment = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.hostname.includes('192.168.');
+    
+    if (isDevelopment) {
+        return 'http://localhost:3001';
+    }
+    
+    // Production - your Render backend URL
+    return 'https://echome-x-backend.onrender.com'; // Replace with your actual Render URL
+})();
+
+console.log('🔗 API Base URL:', API_BASE_URL);
 
 // Error handling utilities
 class APIError extends Error {
