@@ -288,24 +288,64 @@ function skipSocialMedia() {
 }
 
 function acceptPermissions() {
-    const permissions = {
-        facebook: document.getElementById('facebookPermission').checked,
-        twitter: document.getElementById('twitterPermission').checked,
-        instagram: document.getElementById('instagramPermission').checked,
-        linkedin: document.getElementById('linkedinPermission').checked
-    };
+    // Collect all quiz data
+    const twinData = collectQuizData();
     
-    answers.socialMediaPermissions = permissions;
-    createTwin();
+    // Create the twin with the collected data
+    createTwin(twinData);
+}
+
+// Function to collect quiz data
+function collectQuizData() {
+    const answers = {};
+    const socialMedia = {};
+    const permissions = {};
+    
+    // Collect quiz answers
+    const quizForm = document.querySelector('#quiz-form') || document.querySelector('form');
+    if (quizForm) {
+        const formData = new FormData(quizForm);
+        for (let [key, value] of formData.entries()) {
+            answers[key] = value;
+        }
+    }
+    
+    // Collect radio button answers
+    document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+        answers[radio.name] = radio.value;
+    });
+    
+    // Collect text inputs
+    document.querySelectorAll('input[type="text"], textarea').forEach(input => {
+        if (input.value.trim()) {
+            answers[input.name || input.id] = input.value.trim();
+        }
+    });
+    
+    // Collect social media permissions (if any checkboxes exist)
+    document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+        permissions[checkbox.name || checkbox.id] = true;
+    });
+    
+    return {
+        answers,
+        socialMedia,
+        permissions,
+        timestamp: new Date().toISOString()
+    };
 }
 
 // Replace the existing createTwin function
-
 async function createTwin(twinData) {
     try {
         console.log('Creating personality twin with data:', twinData);
         
-        // Use the correct API_BASE_URL from utils.js
+        // If twinData is undefined, collect it
+        if (!twinData) {
+            twinData = collectQuizData();
+            console.log('Collected quiz data:', twinData);
+        }
+        
         const response = await fetch(`${API_BASE_URL}/api/create-personality-twin`, {
             method: 'POST',
             headers: {
@@ -320,12 +360,109 @@ async function createTwin(twinData) {
 
         const result = await response.json();
         console.log('✅ Twin creation successful:', result);
+        
+        // Store the twin data
+        localStorage.setItem('currentTwin', JSON.stringify(result.twin));
+        
+        // Show success and redirect
+        showTwinCreationSuccess(result);
+        
         return result;
         
     } catch (error) {
         console.error('❌ Error creating personality twin:', error);
         throw error;
     }
+}
+
+// Function to show twin creation success
+function showTwinCreationSuccess(result) {
+    // Hide the quiz
+    const quizContainer = document.querySelector('.quiz-container') || 
+                         document.querySelector('.step-content') ||
+                         document.querySelector('#quiz-section');
+    if (quizContainer) {
+        quizContainer.style.display = 'none';
+    }
+    
+    // Show success message
+    const successHtml = `
+        <div class="twin-success-container">
+            <div class="success-icon">✅</div>
+            <h2>Your AI Twin is Ready!</h2>
+            <div class="twin-info">
+                <p><strong>Twin ID:</strong> ${result.twin.id}</p>
+                <p><strong>Created:</strong> ${new Date(result.twin.created).toLocaleString()}</p>
+                <p><strong>Status:</strong> ${result.twin.status}</p>
+            </div>
+            <div class="personality-traits">
+                <h3>Personality Analysis:</h3>
+                <div class="traits-grid">
+                    <div class="trait">
+                        <span>Openness:</span>
+                        <div class="trait-bar">
+                            <div class="trait-fill" style="width: ${result.twin.personality.openness}%"></div>
+                        </div>
+                        <span>${result.twin.personality.openness}%</span>
+                    </div>
+                    <div class="trait">
+                        <span>Conscientiousness:</span>
+                        <div class="trait-bar">
+                            <div class="trait-fill" style="width: ${result.twin.personality.conscientiousness}%"></div>
+                        </div>
+                        <span>${result.twin.personality.conscientiousness}%</span>
+                    </div>
+                    <div class="trait">
+                        <span>Extraversion:</span>
+                        <div class="trait-bar">
+                            <div class="trait-fill" style="width: ${result.twin.personality.extraversion}%"></div>
+                        </div>
+                        <span>${result.twin.personality.extraversion}%</span>
+                    </div>
+                    <div class="trait">
+                        <span>Agreeableness:</span>
+                        <div class="trait-bar">
+                            <div class="trait-fill" style="width: ${result.twin.personality.agreeableness}%"></div>
+                        </div>
+                        <span>${result.twin.personality.agreeableness}%</span>
+                    </div>
+                    <div class="trait">
+                        <span>Neuroticism:</span>
+                        <div class="trait-bar">
+                            <div class="trait-fill" style="width: ${result.twin.personality.neuroticism}%"></div>
+                        </div>
+                        <span>${result.twin.personality.neuroticism}%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button onclick="goToChat()" class="btn-primary">Start Chatting</button>
+                <button onclick="goToAnalytics()" class="btn-secondary">View Analytics</button>
+                <button onclick="createNewTwin()" class="btn-outline">Create New Twin</button>
+            </div>
+        </div>
+    `;
+    
+    // Find where to display the success message
+    const container = document.querySelector('.container') || 
+                     document.querySelector('.main-content') || 
+                     document.body;
+    
+    container.innerHTML = successHtml;
+}
+
+// Navigation functions
+function goToChat() {
+    window.location.href = 'chat.html';
+}
+
+function goToAnalytics() {
+    window.location.href = 'analytics.html';
+}
+
+function createNewTwin() {
+    localStorage.removeItem('currentTwin');
+    window.location.reload();
 }
 
 function buildPersonalityData(answers) {
