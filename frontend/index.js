@@ -301,30 +301,17 @@ function acceptPermissions() {
 
 // Replace the existing createTwin function
 
-async function createTwin() {
-    // Show loading step
-    const currentStepEl = document.getElementById(`step${currentStep}`);
-    currentStepEl.classList.add('slide-out-left');
-    
-    setTimeout(() => {
-        currentStepEl.classList.remove('active', 'slide-out-left');
-        document.getElementById('loadingStep').classList.add('active');
-        animateLoading();
-    }, 300);
-
-    // Build comprehensive personality data
-    const personalityData = buildPersonalityData(answers);
-    
+async function createTwin(twinData) {
     try {
-        console.log('🚀 Creating personality twin with data:', personalityData);
+        console.log('Creating personality twin with data:', twinData);
         
-        // Use your existing API but with personality endpoint
-        const response = await fetch('/api/create-personality-twin', {
+        // Use the correct API_BASE_URL from utils.js
+        const response = await fetch(`${API_BASE_URL}/api/create-personality-twin`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(personalityData)
+            body: JSON.stringify(twinData)
         });
 
         if (!response.ok) {
@@ -332,34 +319,12 @@ async function createTwin() {
         }
 
         const result = await response.json();
-        console.log('✅ Personality twin created:', result);
-
-        if (result.success) {
-            // Store twin data in localStorage for chat page
-            localStorage.setItem('twinId', result.twinId);
-            localStorage.setItem('twinName', answers.name);
-            localStorage.setItem('personalityProfile', JSON.stringify(personalityData));
-            localStorage.setItem('hasPersonality', 'true'); // Add this flag
-            
-            // Complete loading animation
-            const loadingBar = document.getElementById('loadingBar');
-            if (loadingBar) {
-                loadingBar.style.width = '100%';
-            }
-            
-            setTimeout(() => {
-                window.location.href = 'chat.html';
-            }, 2000);
-            
-            // Don't need this since we're redirecting to chat.html
-            // The twin list will load when chat.html loads
-        } else {
-            throw new Error(result.error || 'Failed to create twin');
-        }
+        console.log('✅ Twin creation successful:', result);
+        return result;
+        
     } catch (error) {
         console.error('❌ Error creating personality twin:', error);
-        alert('Error creating twin: ' + error.message);
-        closeTwinWizard();
+        throw error;
     }
 }
 

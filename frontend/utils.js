@@ -4,14 +4,15 @@
 // API Configuration - Updated for production
 const API_BASE_URL = (() => {
     const isDevelopment = window.location.hostname === 'localhost' || 
-                         window.location.hostname === '127.0.0.1';
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.hostname.includes('192.168.');
     
     if (isDevelopment) {
         return 'http://localhost:3001';
     }
     
-    // Replace with your actual Render URL
-    return 'https://your-actual-render-url.onrender.com';
+    // Your live Render backend URL
+    return 'https://echome-x.onrender.com';
 })();
 
 console.log('🔗 API Base URL:', API_BASE_URL);
