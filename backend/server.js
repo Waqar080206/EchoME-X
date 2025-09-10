@@ -7,20 +7,17 @@ const connectDB = require('./config/database');
 const apiRoutes = require('./routes/api');
 
 const app = express();
+const PORT = process.env.PORT || 3001;
 
 // Environment check
 const isProduction = process.env.NODE_ENV === 'production';
 console.log(`🌍 Environment: ${isProduction ? 'Production' : 'Development'}`);
 
-// CORS configuration for production
-const corsOptions = {
-  origin: process.env.CORS_ORIGIN || 'https://echo-me-x.vercel.app',
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-
 // Middleware
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'https://echo-me-x.vercel.app',
+  credentials: true
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -35,68 +32,96 @@ if (isProduction) {
   });
 }
 
-// Request logging (simplified for production)
+// Request logging
 app.use((req, res, next) => {
-  if (!isProduction) {
-    console.log(`${req.method} ${req.path}`);
-  }
+  console.log(`${req.method} ${req.path}`);
   next();
 });
 
-// API Routes
-app.use('/api', apiRoutes);
-
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    version: '1.0.0'
-  });
-});
-
-// Test route
-app.get('/test', (req, res) => {
-  res.json({ 
-    message: 'Backend test successful!', 
-    environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString(),
-    cors: process.env.CORS_ORIGIN
-  });
-});
-
-// Root route
+// Basic routes
 app.get('/', (req, res) => {
-  res.json({
+  res.json({ 
     message: 'EchoMe X Backend is running!',
     version: '1.0.0',
     timestamp: new Date().toISOString()
   });
 });
 
-// API Routes for Twin Creation
-app.post('/api/train', (req, res) => {
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString() 
+  });
+});
+
+app.get('/test', (req, res) => {
+  res.json({ 
+    message: 'Backend test successful!',
+    cors: process.env.CORS_ORIGIN
+  });
+});
+
+// API Routes - Add the exact endpoint your frontend calls
+app.post('/api/create-personality-twin', (req, res) => {
   try {
-    console.log('Received twin creation request:', req.body);
+    console.log('Creating personality twin with data:', req.body);
     
-    // For now, return a success response
-    // You'll need to add your actual twin creation logic here
+    const { answers, socialMedia, permissions } = req.body;
+    
+    // Generate a unique twin ID
+    const twinId = 'twin_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    // Simulate personality analysis
+    const personalityTraits = {
+      openness: Math.floor(Math.random() * 100),
+      conscientiousness: Math.floor(Math.random() * 100),
+      extraversion: Math.floor(Math.random() * 100),
+      agreeableness: Math.floor(Math.random() * 100),
+      neuroticism: Math.floor(Math.random() * 100)
+    };
+    
     res.json({
       success: true,
-      message: 'Twin created successfully!',
-      twinId: 'twin_' + Date.now(),
-      personality: req.body.personality || 'default'
+      message: 'Personality twin created successfully!',
+      twin: {
+        id: twinId,
+        personality: personalityTraits,
+        answers: answers || {},
+        socialMedia: socialMedia || {},
+        permissions: permissions || {},
+        created: new Date().toISOString(),
+        status: 'active'
+      }
     });
   } catch (error) {
-    console.error('Error creating twin:', error);
+    console.error('Error creating personality twin:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to create twin'
+      error: 'Failed to create personality twin',
+      details: error.message
     });
   }
 });
 
+// Legacy train endpoint
+app.post('/api/train', (req, res) => {
+  try {
+    console.log('Received train request:', req.body);
+    res.json({
+      success: true,
+      message: 'Twin trained successfully!',
+      twinId: 'twin_' + Date.now()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Training failed'
+    });
+  }
+});
+
+// Twin info endpoint
 app.get('/api/twin-info', (req, res) => {
   res.json({
     success: true,
@@ -104,19 +129,21 @@ app.get('/api/twin-info', (req, res) => {
       id: 'twin_example',
       name: 'Your AI Twin',
       personality: 'friendly and helpful',
-      created: new Date().toISOString()
+      created: new Date().toISOString(),
+      status: 'active'
     }
   });
 });
 
+// Chat endpoints
 app.post('/api/chat', (req, res) => {
   try {
     const { message } = req.body;
     
-    // Simple response for now
     res.json({
       success: true,
-      response: `Echo: ${message}`
+      response: `Echo: ${message}`,
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
     res.status(500).json({
@@ -126,20 +153,60 @@ app.post('/api/chat', (req, res) => {
   }
 });
 
-// 404 handler
+app.post('/api/chat-with-personality', (req, res) => {
+  try {
+    const { message, twinId } = req.body;
+    
+    res.json({
+      success: true,
+      response: `Personality response to: ${message}`,
+      twinId: twinId,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Personality chat failed'
+    });
+  }
+});
+
+// Debug endpoint to see all available routes
+app.get('/api/routes', (req, res) => {
+  res.json({
+    availableRoutes: [
+      'GET /',
+      'GET /health',
+      'GET /test',
+      'POST /api/create-personality-twin',
+      'POST /api/train',
+      'GET /api/twin-info',
+      'POST /api/chat',
+      'POST /api/chat-with-personality',
+      'GET /api/routes'
+    ]
+  });
+});
+
+// 404 handler with better debugging
 app.use('*', (req, res) => {
   console.log('404 - Route not found:', req.method, req.originalUrl);
+  console.log('Headers:', req.headers);
+  
   res.status(404).json({ 
     error: 'Route not found',
     method: req.method,
     path: req.originalUrl,
+    timestamp: new Date().toISOString(),
     availableRoutes: [
       'GET /',
       'GET /health', 
       'GET /test',
+      'POST /api/create-personality-twin',
       'POST /api/train',
       'GET /api/twin-info',
-      'POST /api/chat'
+      'POST /api/chat',
+      'POST /api/chat-with-personality'
     ]
   });
 });
@@ -148,14 +215,12 @@ app.use('*', (req, res) => {
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(500).json({ 
-    error: isProduction ? 'Internal server error' : err.message,
+    error: 'Internal server error',
     timestamp: new Date().toISOString()
   });
 });
 
 // Start server
-const PORT = process.env.PORT || 3001;
-
 const startServer = async () => {
   try {
     // Connect to MongoDB
@@ -166,12 +231,12 @@ const startServer = async () => {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-      console.log(`📡 API endpoints: http://localhost:${PORT}/api`);
-      
-      if (isProduction) {
-        console.log('🔒 Production mode: Enhanced security enabled');
-      }
+      console.log('📡 Available endpoints:');
+      console.log('  POST /api/create-personality-twin');
+      console.log('  POST /api/train');
+      console.log('  GET /api/twin-info');
+      console.log('  POST /api/chat');
+      console.log('  POST /api/chat-with-personality');
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
