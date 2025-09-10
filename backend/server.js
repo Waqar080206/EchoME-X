@@ -14,12 +14,7 @@ console.log(`🌍 Environment: ${isProduction ? 'Production' : 'Development'}`);
 
 // CORS configuration for production
 const corsOptions = {
-  origin: isProduction 
-    ? [
-        'https://echo-me-x.vercel.app/', 
-        
-      ]
-    : ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:5500'],
+  origin: process.env.CORS_ORIGIN || 'https://echo-me-x.vercel.app',
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -64,29 +59,88 @@ app.get('/health', (req, res) => {
 // Test route
 app.get('/test', (req, res) => {
   res.json({ 
-    message: 'EchoMe X Backend is running!', 
+    message: 'Backend test successful!', 
     environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString() 
+    timestamp: new Date().toISOString(),
+    cors: process.env.CORS_ORIGIN
   });
 });
 
 // Root route
 app.get('/', (req, res) => {
   res.json({
-    message: 'EchoMe X API Server',
+    message: 'EchoMe X Backend is running!',
     version: '1.0.0',
-    status: 'running',
-    documentation: '/api',
-    health: '/health'
+    timestamp: new Date().toISOString()
   });
+});
+
+// API Routes for Twin Creation
+app.post('/api/train', (req, res) => {
+  try {
+    console.log('Received twin creation request:', req.body);
+    
+    // For now, return a success response
+    // You'll need to add your actual twin creation logic here
+    res.json({
+      success: true,
+      message: 'Twin created successfully!',
+      twinId: 'twin_' + Date.now(),
+      personality: req.body.personality || 'default'
+    });
+  } catch (error) {
+    console.error('Error creating twin:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create twin'
+    });
+  }
+});
+
+app.get('/api/twin-info', (req, res) => {
+  res.json({
+    success: true,
+    twin: {
+      id: 'twin_example',
+      name: 'Your AI Twin',
+      personality: 'friendly and helpful',
+      created: new Date().toISOString()
+    }
+  });
+});
+
+app.post('/api/chat', (req, res) => {
+  try {
+    const { message } = req.body;
+    
+    // Simple response for now
+    res.json({
+      success: true,
+      response: `Echo: ${message}`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Chat failed'
+    });
+  }
 });
 
 // 404 handler
 app.use('*', (req, res) => {
+  console.log('404 - Route not found:', req.method, req.originalUrl);
   res.status(404).json({ 
     error: 'Route not found',
+    method: req.method,
     path: req.originalUrl,
-    timestamp: new Date().toISOString()
+    availableRoutes: [
+      'GET /',
+      'GET /health', 
+      'GET /test',
+      'POST /api/train',
+      'GET /api/twin-info',
+      'POST /api/chat'
+    ]
   });
 });
 
