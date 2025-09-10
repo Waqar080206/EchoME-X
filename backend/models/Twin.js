@@ -17,7 +17,16 @@ const twinSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true
-  }
+  },
+  personalityProfile: {
+    type: Object,
+    default: null
+  },
+  conversationHistory: [{
+    userMessage: String,
+    twinResponse: String,
+    timestamp: { type: Date, default: Date.now }
+  }]
 }, {
   timestamps: true
 });

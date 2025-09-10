@@ -2,17 +2,21 @@
 // This file handles the analytics dashboard and mobile navigation
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Force remove any navbar elements
+    const navbar = document.querySelector('.header');
+    if (navbar) {
+        navbar.remove();
+        console.log('✅ Removed navbar from analytics page');
+    }
+    
     initializeAnalyticsPage();
 });
 
 function initializeAnalyticsPage() {
-    // Mobile navigation toggle
-    EchoMeUtils.initializeMobileNavigation();
-    
-    // Analytics functionality
+    // Analytics functionality only - NO navbar initialization
     initializeAnalytics();
     
-    console.log('Neural analytics dashboard initialized');
+    console.log('Analytics dashboard initialized - sidebar only');
 }
 
 async function initializeAnalytics() {

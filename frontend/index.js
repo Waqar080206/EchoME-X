@@ -1,0 +1,486 @@
+let currentStep = 0;
+const totalSteps = 13; // 1 name + 1 gender + 10 questions + 1 permissions
+const answers = {};
+
+function openTwinWizard() {
+    document.getElementById('twinModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    updateProgress();
+}
+
+function closeTwinWizard() {
+    document.getElementById('twinModal').classList.remove('active');
+    document.body.style.overflow = '';
+    resetQuiz();
+}
+
+function resetQuiz() {
+    currentStep = 0;
+    Object.keys(answers).forEach(key => delete answers[key]);
+    
+    // Reset all steps
+    document.querySelectorAll('.quiz-step').forEach(step => {
+        step.classList.remove('active', 'slide-out-left', 'slide-in-right', 'slide-out-right', 'slide-in-left');
+    });
+    document.getElementById('step0').classList.add('active');
+    
+    // Reset form inputs
+    document.getElementById('twinName').value = '';
+    document.querySelector('.btn-continue').disabled = true;
+    
+    // Reset all option buttons
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    
+    // Reset checkboxes
+    document.querySelectorAll('.social-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    updateProgress();
+    updateBackButton();
+}
+
+function updateProgress() {
+    const progress = (currentStep / (totalSteps - 2)) * 100; // Exclude loading step and permissions
+    document.getElementById('progressFill').style.width = `${progress}%`;
+    
+    if (currentStep === 0) {
+        document.getElementById('progressText').textContent = 'Getting Started';
+    } else if (currentStep === 1) {
+        document.getElementById('progressText').textContent = 'Basic Information';
+    } else if (currentStep <= 11) {
+        document.getElementById('progressText').textContent = `Question ${currentStep - 1} of 10`;
+    } else if (currentStep === 12) {
+        document.getElementById('progressText').textContent = 'Permissions';
+    }
+}
+
+// Replace the existing updateBackButton function
+
+function updateBackButton() {
+    console.log('Updating back button for step:', currentStep);
+    
+    // Remove existing back buttons (except permissions back button)
+    const existingBackButtons = document.querySelectorAll('.btn-back:not(.permissions-back-btn)');
+    existingBackButtons.forEach(btn => btn.remove());
+    
+    // Handle permissions step back button
+    const permissionsBackBtn = document.getElementById('permissionsBackBtn');
+    if (permissionsBackBtn) {
+        if (currentStep === 12) {
+            permissionsBackBtn.style.display = 'flex';
+            console.log('Showing permissions back button');
+        } else {
+            permissionsBackBtn.style.display = 'none';
+        }
+    }
+    
+    // Add back button starting from step 2 (Gender question = step 1, first personality question = step 2)
+    // Show back button for steps 2-11 (personality questions) and step 1 (gender)
+    if (currentStep >= 1 && currentStep <= 11) {
+        const currentStepEl = document.getElementById(`step${currentStep}`);
+        const stepButtons = currentStepEl?.querySelector('.step-buttons');
+        
+        if (stepButtons && !stepButtons.querySelector('.btn-back')) {
+            console.log('Adding back button to step:', currentStep);
+            
+            const backButton = document.createElement('button');
+            backButton.className = 'btn-back';
+            backButton.onclick = previousQuestion;
+            backButton.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5m7-7l-7 7 7 7"/>
+                </svg>
+                Back
+            `;
+            stepButtons.insertBefore(backButton, stepButtons.firstChild);
+        }
+    }
+    
+    // Ensure modal content is scrolled to top when changing steps
+    const modalContent = document.querySelector('.modal-content');
+    if (modalContent) {
+        modalContent.scrollTop = 0;
+    }
+}
+
+// Add this temporary debug function to test back button creation
+
+function debugBackButton() {
+    console.log('=== DEBUG BACK BUTTON ===');
+    console.log('Current step:', currentStep);
+    console.log('Should show back button:', currentStep >= 1 && currentStep <= 11);
+    
+    const currentStepEl = document.getElementById(`step${currentStep}`);
+    console.log('Current step element:', currentStepEl);
+    
+    if (currentStepEl) {
+        const stepButtons = currentStepEl.querySelector('.step-buttons');
+        console.log('Step buttons container:', stepButtons);
+        
+        if (stepButtons) {
+            const existingBackBtn = stepButtons.querySelector('.btn-back');
+            console.log('Existing back button:', existingBackBtn);
+        }
+    }
+    console.log('=========================');
+}
+
+// Replace the existing nextQuestion function
+
+function nextQuestion() {
+    console.log('Next question called, current step:', currentStep);
+    
+    if (currentStep === 0) {
+        // Validate name input
+        const name = document.getElementById('twinName').value.trim();
+        if (!name) {
+            console.log('No name provided');
+            return;
+        }
+        answers.name = name;
+        console.log('Name saved:', name);
+    }
+    
+    if (currentStep < totalSteps - 1) {
+        // Slide out current step
+        const currentStepEl = document.getElementById(`step${currentStep}`);
+        console.log('Current step element:', currentStepEl);
+        
+        if (currentStepEl) {
+            currentStepEl.classList.add('slide-out-left');
+            
+            setTimeout(() => {
+                currentStepEl.classList.remove('active', 'slide-out-left');
+                currentStep++;
+                console.log('Moving to step:', currentStep);
+                
+                // Slide in next step
+                const nextStepEl = document.getElementById(`step${currentStep}`);
+                console.log('Next step element:', nextStepEl);
+                
+                if (nextStepEl) {
+                    nextStepEl.classList.add('active', 'slide-in-right');
+                    
+                    setTimeout(() => {
+                        nextStepEl.classList.remove('slide-in-right');
+                    }, 300);
+                }
+                
+                updateProgress();
+                updateBackButton();
+                restoreSelectedOption();
+                debugBackButton();
+            }, 300);
+        }
+    }
+}
+
+// Replace the existing previousQuestion function
+
+function previousQuestion() {
+    if (currentStep > 0) {
+        console.log('Going back from step:', currentStep);
+        
+        // Slide out current step to the right
+        const currentStepEl = document.getElementById(`step${currentStep}`);
+        currentStepEl.classList.add('slide-out-right');
+        
+        setTimeout(() => {
+            currentStepEl.classList.remove('active', 'slide-out-right');
+            currentStep--;
+            console.log('Now on step:', currentStep);
+            
+            // Slide in previous step from the left
+            const prevStepEl = document.getElementById(`step${currentStep}`);
+            prevStepEl.classList.add('active', 'slide-in-left');
+            
+            setTimeout(() => {
+                prevStepEl.classList.remove('slide-in-left');
+            }, 300);
+            
+            updateProgress();
+            updateBackButton();
+            restoreSelectedOption();
+            
+            // For name step (step 0), restore continue button state
+            if (currentStep === 0) {
+                const nameInput = document.getElementById('twinName');
+                const continueBtn = document.querySelector('.btn-continue');
+                if (nameInput && continueBtn) {
+                    const hasName = nameInput.value.trim().length > 0;
+                    continueBtn.disabled = !hasName;
+                }
+            }
+        }, 300);
+    }
+}
+
+function restoreSelectedOption() {
+    // Restore previously selected option when going back
+    const currentStepEl = document.getElementById(`step${currentStep}`);
+    
+    if (currentStep === 1) {
+        // Gender question
+        if (answers.gender) {
+            const genderOption = currentStepEl.querySelector(`[data-value="${answers.gender}"]`);
+            if (genderOption) {
+                genderOption.classList.add('selected');
+            }
+        }
+    } else if (currentStep >= 2 && currentStep <= 11) {
+        // Personality questions
+        const questionKey = `q${currentStep - 1}`;
+        if (answers[questionKey]) {
+            const selectedOption = currentStepEl.querySelector(`[data-value="${answers[questionKey]}"]`);
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+            }
+        }
+    } else if (currentStep === 12) {
+        // Social media permissions
+        if (answers.socialMediaPermissions && typeof answers.socialMediaPermissions === 'object') {
+            Object.keys(answers.socialMediaPermissions).forEach(platform => {
+                const checkbox = document.getElementById(`${platform}Permission`);
+                if (checkbox) {
+                    checkbox.checked = answers.socialMediaPermissions[platform];
+                }
+            });
+        }
+    }
+}
+
+function selectOption(button) {
+    const step = button.closest('.quiz-step');
+    const questionNumber = step.id.replace('step', '');
+    
+    // Remove selection from other options in this step
+    step.querySelectorAll('.option-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    
+    // Select this option
+    button.classList.add('selected');
+    
+    // Store answer
+    if (questionNumber === '1') {
+        answers.gender = button.dataset.value;
+    } else {
+        answers[`q${questionNumber - 1}`] = button.dataset.value;
+    }
+    
+    // Auto-advance after a brief delay
+    setTimeout(() => {
+        if (currentStep === 11) {
+            // Last personality question - go to permissions
+            nextQuestion();
+        } else {
+            nextQuestion();
+        }
+    }, 800);
+}
+
+function skipSocialMedia() {
+    answers.socialMediaPermissions = 'skipped';
+    createTwin();
+}
+
+function acceptPermissions() {
+    const permissions = {
+        facebook: document.getElementById('facebookPermission').checked,
+        twitter: document.getElementById('twitterPermission').checked,
+        instagram: document.getElementById('instagramPermission').checked,
+        linkedin: document.getElementById('linkedinPermission').checked
+    };
+    
+    answers.socialMediaPermissions = permissions;
+    createTwin();
+}
+
+// Replace the existing createTwin function
+
+async function createTwin() {
+    // Show loading step
+    const currentStepEl = document.getElementById(`step${currentStep}`);
+    currentStepEl.classList.add('slide-out-left');
+    
+    setTimeout(() => {
+        currentStepEl.classList.remove('active', 'slide-out-left');
+        document.getElementById('loadingStep').classList.add('active');
+        animateLoading();
+    }, 300);
+
+    // Build comprehensive personality data
+    const personalityData = buildPersonalityData(answers);
+    
+    try {
+        console.log('🚀 Creating personality twin with data:', personalityData);
+        
+        // Use your existing API but with personality endpoint
+        const response = await fetch('/api/create-personality-twin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(personalityData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Personality twin created:', result);
+
+        if (result.success) {
+            // Store twin data in localStorage for chat page
+            localStorage.setItem('twinId', result.twinId);
+            localStorage.setItem('twinName', answers.name);
+            localStorage.setItem('personalityProfile', JSON.stringify(personalityData));
+            localStorage.setItem('hasPersonality', 'true'); // Add this flag
+            
+            // Complete loading animation
+            const loadingBar = document.getElementById('loadingBar');
+            if (loadingBar) {
+                loadingBar.style.width = '100%';
+            }
+            
+            setTimeout(() => {
+                window.location.href = 'chat.html';
+            }, 2000);
+            
+            // Don't need this since we're redirecting to chat.html
+            // The twin list will load when chat.html loads
+        } else {
+            throw new Error(result.error || 'Failed to create twin');
+        }
+    } catch (error) {
+        console.error('❌ Error creating personality twin:', error);
+        alert('Error creating twin: ' + error.message);
+        closeTwinWizard();
+    }
+}
+
+function buildPersonalityData(answers) {
+    // Map quiz answers to personality traits
+    const traits = {
+        extraversion: answers.q1 === 'extraverted' ? 0.8 : 0.2,
+        openness: answers.q2 === 'open' ? 0.8 : 0.2,
+        conscientiousness: answers.q3 === 'organized' ? 0.8 : 0.2,
+        agreeableness: answers.q4 === 'agreeable' ? 0.8 : 0.2,
+        neuroticism: answers.q5 === 'sensitive' ? 0.8 : 0.2,
+        optimism: answers.q6 === 'optimistic' ? 0.8 : 0.2,
+        thinking_style: answers.q7 === 'practical' ? 'practical' : 'creative',
+        decision_style: answers.q8 === 'emotional' ? 'emotional' : 'logical',
+        planning_style: answers.q9 === 'decisive' ? 'decisive' : 'flexible',
+        worldview: answers.q10 === 'positive' ? 'optimistic' : 'realistic'
+    };
+
+    // Build comprehensive personality profile
+    const personalityProfile = {
+        name: answers.name,
+        gender: answers.gender,
+        bigFiveTraits: {
+            extraversion: traits.extraversion,
+            openness: traits.openness,
+            conscientiousness: traits.conscientiousness,
+            agreeableness: traits.agreeableness,
+            neuroticism: traits.neuroticism
+        },
+        communicationStyle: {
+            formality: traits.conscientiousness > 0.5 ? 'formal' : 'casual',
+            expressiveness: traits.extraversion > 0.5 ? 'expressive' : 'reserved',
+            supportiveness: traits.agreeableness > 0.5 ? 'supportive' : 'direct',
+            optimism: traits.optimism
+        },
+        cognitiveStyle: {
+            thinking_preference: traits.thinking_style,
+            decision_making: traits.decision_style,
+            planning_approach: traits.planning_style,
+            creativity_level: traits.openness
+        },
+        socialMediaPermissions: answers.socialMediaPermissions || 'skipped',
+        createdAt: new Date().toISOString(),
+        responses: {
+            q1: answers.q1, // Social interaction
+            q2: answers.q2, // Openness to experience
+            q3: answers.q3, // Organization
+            q4: answers.q4, // Conflict resolution
+            q5: answers.q5, // Stress response
+            q6: answers.q6, // Optimism
+            q7: answers.q7, // Problem solving
+            q8: answers.q8, // Decision making
+            q9: answers.q9, // Planning style
+            q10: answers.q10 // Life outlook
+        }
+    };
+
+    return personalityProfile;
+}
+
+function animateLoading() {
+    const loadingBar = document.getElementById('loadingBar');
+    let progress = 0;
+    
+    const interval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 90) progress = 90; // Stop at 90% until API call completes
+        
+        loadingBar.style.width = `${progress}%`;
+        
+        if (progress >= 90) {
+            clearInterval(interval);
+        }
+    }, 200);
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Name input validation
+    const nameInput = document.getElementById('twinName');
+    const continueBtn = document.querySelector('.btn-continue');
+    
+    if (nameInput && continueBtn) {
+        nameInput.addEventListener('input', function() {
+            const hasName = this.value.trim().length > 0;
+            continueBtn.disabled = !hasName;
+        });
+
+        // Enter key support for name input
+        nameInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !continueBtn.disabled) {
+                nextQuestion();
+            }
+        });
+    }
+
+    // Close modal on outside click
+    const twinModal = document.getElementById('twinModal');
+    if (twinModal) {
+        twinModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeTwinWizard();
+            }
+        });
+    }
+
+    // Prevent modal close on content click
+    const modalContent = document.querySelector('.modal-content');
+    if (modalContent) {
+        modalContent.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+
+    // Initialize back button visibility
+    updateBackButton();
+    
+    // Also call updateBackButton whenever the modal opens
+    const originalOpenTwinWizard = openTwinWizard;
+    openTwinWizard = function() {
+        originalOpenTwinWizard();
+        setTimeout(updateBackButton, 100); // Small delay to ensure DOM is ready
+    };
+});

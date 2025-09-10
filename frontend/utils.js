@@ -220,6 +220,13 @@ function initializeMobileNavigation() {
     }
 }
 
+// Escape HTML utility
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Export functions for use in other files
 window.EchoMeUtils = {
     API_BASE_URL,

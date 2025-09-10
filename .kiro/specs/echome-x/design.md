@@ -2,7 +2,7 @@
 
 ## Overview
 
-EchoMe X is designed as a lightweight AI Twin platform MVP with a clean separation between frontend and backend services. The architecture prioritizes simplicity, quick deployment, and scalability for future enhancements. The system allows users to create AI twins that mimic their communication style through a simple three-page web interface backed by a RESTful API.
+EchoMe X is designed as a sophisticated AI Twin platform MVP with advanced personality assessment and premium user experience. The architecture features a modular frontend with component-based CSS system and a personality-driven backend API. The system allows users to create highly personalized AI twins through comprehensive psychological assessment, delivering ChatGPT-quality interactions through a premium interface backed by Groq API integration.
 
 ## Architecture
 
@@ -48,54 +48,65 @@ graph TB
 ### Technology Stack
 
 **Frontend:**
-- HTML5/CSS3/JavaScript (ES6+)
-- Vanilla JS for DOM manipulation and API calls
-- CSS Grid/Flexbox for responsive layouts
-- Fetch API for HTTP requests
+- HTML5/CSS3/JavaScript (ES6+) with modular architecture
+- Component-based CSS system (base.css, components.css, layout.css, pages.css, utilities.css)
+- Inter font family for premium typography
+- Vanilla JS with advanced DOM manipulation and API integration
+- CSS Grid/Flexbox with responsive design system
+- Premium ChatGPT-inspired UI with dark theme
 
 **Backend:**
 - Node.js with Express.js framework
-- MongoDB with Mongoose ODM
-- CORS middleware for cross-origin requests
-- Environment variables for configuration
+- MongoDB with Mongoose ODM for personality profiles
+- Axios for Groq API integration
+- CORS middleware and comprehensive error handling
+- UUID for unique twin identification
+- Environment-based configuration with dotenv
 
 **External Integrations:**
-- Groq API or OpenAI API for AI responses
-- MongoDB Atlas for database hosting
+- Groq API for personality-driven AI responses
+- MongoDB Atlas for personality profile storage
+- Social media APIs (optional permissions)
 
 **Deployment:**
-- Frontend: Vercel or Netlify
-- Backend: Render or Railway
-- Database: MongoDB Atlas
+- Frontend: Vercel with static hosting
+- Backend: Render with Node.js runtime
+- Database: MongoDB Atlas cloud hosting
 
 ## Components and Interfaces
 
 ### Frontend Components
 
 #### 1. Landing Page (`index.html`)
-- **Purpose**: Twin creation interface
+- **Purpose**: Premium twin creation with personality assessment
 - **Components**:
-  - Hero section with app description
-  - Twin creation form (name, persona details)
-  - Navigation to other pages
-- **API Integration**: POST `/api/train`
+  - Hero section with premium branding and call-to-action
+  - Step-by-step personality assessment modal (11 questions)
+  - Big Five personality trait mapping system
+  - Social media permissions interface
+  - Loading animation with twin creation progress
+- **API Integration**: POST `/api/create-personality-twin`
 
 #### 2. Chat Interface (`chat.html`)
-- **Purpose**: Real-time chat with AI twin
+- **Purpose**: Premium ChatGPT-inspired chat with personality-driven AI
 - **Components**:
-  - Chat message container
-  - Message input field and send button
-  - Twin persona display
-  - Message history
-- **API Integration**: POST `/api/chat`
+  - Sidebar navigation with twin management
+  - Premium black-themed chat interface
+  - Message bubbles with user/assistant avatars
+  - Auto-resizing textarea with send button
+  - Typing indicators and welcome suggestions
+  - Twin switching and management controls
+- **API Integration**: POST `/api/chat-personality`, GET `/api/debug-twins`
 
 #### 3. Analytics Dashboard (`analytics.html`)
-- **Purpose**: Display engagement metrics
+- **Purpose**: Comprehensive analytics with visual insights
 - **Components**:
-  - Metrics cards (followers, engagement rate)
-  - Charts/graphs for visual data
-  - Twin performance overview
-- **API Integration**: GET `/api/analytics/:userId`
+  - Animated metrics cards with hover effects
+  - Interactive charts showing engagement trends
+  - Popular topics analysis with progress bars
+  - Recent activity feed with timestamps
+  - Real-time metric updates with smooth animations
+- **API Integration**: GET `/api/analytics`
 
 ### Backend Components
 
@@ -109,23 +120,29 @@ graph TB
 
 #### 2. API Routes (`/routes`)
 
-##### `/api/train` (POST)
-- **Purpose**: Create and store AI twin
-- **Input**: `{ name, persona, traits, communicationStyle }`
-- **Output**: `{ success, userId, message }`
-- **Process**: Validate input → Save to MongoDB → Return user ID
+##### `/api/create-personality-twin` (POST)
+- **Purpose**: Create personality-driven AI twin from assessment data
+- **Input**: `{ name, gender, bigFiveTraits, communicationStyle, cognitiveStyle, socialMediaPermissions }`
+- **Output**: `{ success, twinId, message }`
+- **Process**: Map personality traits → Create comprehensive profile → Save to MongoDB → Return twin ID
 
-##### `/api/chat` (POST)
-- **Purpose**: Generate AI twin responses
-- **Input**: `{ userId, message, conversationHistory }`
-- **Output**: `{ response, timestamp }`
-- **Process**: Fetch user persona → Build AI prompt → Call Groq/OpenAI → Return response
+##### `/api/chat-personality` (POST)
+- **Purpose**: Generate personality-driven AI responses using Groq API
+- **Input**: `{ message, twinId }`
+- **Output**: `{ success, response, timestamp }`
+- **Process**: Fetch personality profile → Build personality-aware prompt → Call Groq API → Return response
 
-##### `/api/analytics/:userId` (GET)
-- **Purpose**: Retrieve engagement analytics
-- **Input**: User ID from URL params
-- **Output**: `{ followers, engagementRate, totalInteractions, growthRate }`
-- **Process**: Query user data → Calculate metrics → Return analytics
+##### `/api/analytics` (GET)
+- **Purpose**: Retrieve comprehensive engagement analytics
+- **Input**: None (uses stored twin data)
+- **Output**: `{ followers, engagementRate, totalInteractions, averageResponseTime, trends }`
+- **Process**: Aggregate twin data → Calculate metrics → Return formatted analytics
+
+##### `/api/debug-twins` (GET)
+- **Purpose**: Twin management and debugging information
+- **Input**: None
+- **Output**: `{ twins: [{ id, name, conversationCount, hasPersonality }] }`
+- **Process**: Query all twins → Format for UI → Return twin list
 
 #### 3. AI Service Layer (`/services/aiService.js`)
 - **Purpose**: Handle AI API integrations
@@ -141,17 +158,42 @@ graph TB
 
 ## Data Models
 
-### User Model
+### Twin Model
 ```javascript
 {
   _id: ObjectId,
   name: String,
-  persona: {
-    traits: [String],
-    communicationStyle: String,
-    background: String,
-    interests: [String]
+  userId: String, // Unique identifier
+  persona: String, // Legacy field for basic twins
+  personalityProfile: {
+    gender: String,
+    bigFiveTraits: {
+      extraversion: Number, // 0-1 scale
+      openness: Number,
+      conscientiousness: Number,
+      agreeableness: Number,
+      neuroticism: Number
+    },
+    communicationStyle: {
+      formality: String, // 'formal' | 'casual'
+      expressiveness: String, // 'expressive' | 'reserved'
+      supportiveness: String, // 'supportive' | 'direct'
+      optimism: Number // 0-1 scale
+    },
+    cognitiveStyle: {
+      thinking_preference: String, // 'practical' | 'creative'
+      decision_making: String, // 'emotional' | 'logical'
+      planning_approach: String, // 'decisive' | 'flexible'
+      creativity_level: Number // 0-1 scale
+    },
+    socialMediaPermissions: Object, // Platform permissions
+    responses: Object // Raw quiz responses
   },
+  conversationHistory: [{
+    userMessage: String,
+    twinResponse: String,
+    timestamp: Date
+  }],
   createdAt: Date,
   updatedAt: Date
 }

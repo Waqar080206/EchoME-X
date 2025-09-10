@@ -151,7 +151,9 @@ p {
    HEADER & NAVIGATION
    ========================================== */
 
-.header {
+/* Comment out or override navbar styles for analytics */
+
+/* .header {
   position: fixed;
   top: 0;
   left: 0;
@@ -160,6 +162,19 @@ p {
   background: rgba(10, 10, 11, 0.8);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--color-border-secondary);
+} */
+
+/* Override for analytics page */
+.analytics-page .header {
+  display: none !important;
+}
+
+.analytics-page .navbar {
+  display: none !important;
+}
+
+.analytics-page {
+  padding-top: 0 !important;
 }
 
 .navbar {

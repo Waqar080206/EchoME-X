@@ -9,41 +9,52 @@
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/pages.css">
     <link rel="stylesheet" href="css/utilities.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="analytics.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    
+    <!-- FORCE REMOVE NAVBAR ON ANALYTICS PAGE -->
+    <style>
+        /* Override any navbar styling that might be applied */
+        .header, .navbar, .nav-container {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        .analytics-page {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        
+        .page-wrapper {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        
+        .analytics-section {
+            padding-top: 3rem !important;
+        }
+        
+        /* Remove any CSS variables that might add navbar height */
+        :root {
+            --navbar-height: 0px !important;
+        }
+        
+        body {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+    </style>
 </head>
 <body>
+    <!-- Sidebar will be loaded here dynamically -->
+    
     <div class="page-wrapper">
-        <!-- Header -->
-        <header class="header">
-            <nav class="navbar">
-                <div class="nav-container">
-                    <div class="nav-brand">
-                        <a href="index.html" class="nav-logo">
-                            <div class="logo-icon">
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2L2 7V10C2 16 6 20.5 12 22C18 20.5 22 16 22 10V7L12 2Z"/>
-                                </svg>
-                            </div>
-                            <span class="logo-text">EchoMe X</span>
-                        </a>
-                    </div>
-                    
-                    <ul class="nav-menu">
-                        <li><a href="index.html" class="nav-link">Home</a></li>
-                        <li><a href="chat.html" class="nav-link">Chat</a></li>
-                        <li><a href="analytics.html" class="nav-link active">Analytics</a></li>
-                    </ul>
-                    
-                    <button class="nav-toggle d-md-block d-none">
-                        <span class="hamburger-line"></span>
-                        <span class="hamburger-line"></span>
-                        <span class="hamburger-line"></span>
-                    </button>
-                </div>
-            </nav>
-        </header>
-
         <!-- Analytics Dashboard -->
         <main class="analytics-page">
             <div class="analytics-section">
@@ -263,73 +274,108 @@
         </main>
     </div>
 
+    <!-- Scripts -->
+    <script src="sidebar.js"></script>
     <script src="utils.js"></script>
     <script src="analytics.js"></script>
     <script src="js/api.js"></script>
+    
+    <!-- Additional script to force remove navbar -->
     <script>
-document.addEventListener('DOMContentLoaded', async function() {
-  try {
-    console.log('🔄 Loading analytics data...');
-    const analytics = await window.echoAPI.getAnalytics();
-    console.log('Analytics data:', analytics);
-    
-    if (analytics.success) {
-      const data = analytics.data;
-      
-      // Update the stat cards with real data
-      updateStatCard('followerCount', formatNumber(data.followers));
-      updateStatCard('engagementRate', data.engagementRate + '%');
-      updateStatCard('interactionCount', formatNumber(data.totalInteractions));
-      updateStatCard('responseTime', data.averageResponseTime + 's');
-      
-      console.log('✅ Analytics updated with real data');
+    document.addEventListener('DOMContentLoaded', function() {
+        // Force remove any navbar elements that might be added dynamically
+        const removeNavbar = () => {
+            const navbar = document.querySelector('.header');
+            const navbarAlt = document.querySelector('.navbar');
+            const navContainer = document.querySelector('.nav-container');
+            
+            if (navbar) {
+                navbar.remove();
+                console.log('✅ Removed navbar element');
+            }
+            if (navbarAlt) {
+                navbarAlt.remove();
+                console.log('✅ Removed navbar alt element');
+            }
+            if (navContainer) {
+                navContainer.remove();
+                console.log('✅ Removed nav container element');
+            }
+        };
+        
+        // Remove immediately
+        removeNavbar();
+        
+        // Remove again after sidebar loads
+        setTimeout(removeNavbar, 100);
+        setTimeout(removeNavbar, 500);
+        setTimeout(removeNavbar, 1000);
+    });
+
+    // Your existing analytics script...
+    document.addEventListener('DOMContentLoaded', async function() {
+      try {
+        console.log('🔄 Loading analytics data...');
+        const analytics = await window.echoAPI.getAnalytics();
+        console.log('Analytics data:', analytics);
+        
+        if (analytics.success) {
+          const data = analytics.data;
+          
+          // Update the stat cards with real data
+          updateStatCard('followerCount', formatNumber(data.followers));
+          updateStatCard('engagementRate', data.engagementRate + '%');
+          updateStatCard('interactionCount', formatNumber(data.totalInteractions));
+          updateStatCard('responseTime', data.averageResponseTime + 's');
+          
+          console.log('✅ Analytics updated with real data');
+        }
+      } catch (error) {
+        console.error('❌ Failed to load analytics:', error);
+        console.log('Using default values');
+      }
+    });
+
+    // Helper function to update stat cards
+    function updateStatCard(elementId, value) {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.textContent = value;
+        
+        // Add animation effect
+        element.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          element.style.transform = 'scale(1)';
+        }, 200);
+      }
     }
-  } catch (error) {
-    console.error('❌ Failed to load analytics:', error);
-    console.log('Using default values');
-  }
-});
 
-// Helper function to update stat cards
-function updateStatCard(elementId, value) {
-  const element = document.getElementById(elementId);
-  if (element) {
-    element.textContent = value;
-    
-    // Add animation effect
-    element.style.transform = 'scale(1.1)';
-    setTimeout(() => {
-      element.style.transform = 'scale(1)';
-    }, 200);
-  }
-}
-
-// Helper function to format numbers (e.g., 2300 -> 2.3K)
-function formatNumber(num) {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M';
-  } else if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K';
-  }
-  return num.toString();
-}
-
-// Optional: Add real-time updates every 30 seconds
-setInterval(async () => {
-  try {
-    const analytics = await window.echoAPI.getAnalytics();
-    if (analytics.success) {
-      const data = analytics.data;
-      updateStatCard('followerCount', formatNumber(data.followers));
-      updateStatCard('engagementRate', data.engagementRate + '%');
-      updateStatCard('interactionCount', formatNumber(data.totalInteractions));
-      updateStatCard('responseTime', data.averageResponseTime + 's');
+    // Helper function to format numbers (e.g., 2300 -> 2.3K)
+    function formatNumber(num) {
+      if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + 'M';
+      } else if (num >= 1000) {
+        return (num / 1000).toFixed(1) + 'K';
+      }
+      return num.toString();
     }
-  } catch (error) {
-    console.log('Background analytics update failed:', error);
-  }
-}, 30000); // Update every 30 seconds
-</script>
+
+    // Optional: Add real-time updates every 30 seconds
+    setInterval(async () => {
+      try {
+        const analytics = await window.echoAPI.getAnalytics();
+        if (analytics.success) {
+          const data = analytics.data;
+          updateStatCard('followerCount', formatNumber(data.followers));
+          updateStatCard('engagementRate', data.engagementRate + '%');
+          updateStatCard('interactionCount', formatNumber(data.totalInteractions));
+          updateStatCard('responseTime', data.averageResponseTime + 's');
+        }
+      } catch (error) {
+        console.log('Background analytics update failed:', error);
+      }
+    }, 30000); // Update every 30 seconds
+    </script>
 </body>
 </html>
 ``` 

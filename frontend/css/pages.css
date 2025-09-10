@@ -414,17 +414,44 @@
    ANALYTICS PAGE STYLES
    ========================================== */
 
-.analytics-section {
-  padding: var(--space-xl) var(--space-lg) var(--space-3xl);
-  background: var(--color-bg-secondary);
-  flex: 1;
-  min-height: calc(100vh - var(--navbar-height));
+/* Analytics Page Styles - COMPLETELY REMOVE NAVBAR */
+.analytics-page {
+  padding-top: 0 !important; /* Force remove navbar padding */
+  min-height: 100vh;
+  background: var(--color-bg-primary, #000000);
 }
 
-.analytics-container {
-  max-width: var(--container-max-width);
+.analytics-section {
+  padding: var(--space-2xl, 3rem) var(--space-lg, 1rem) !important;
+  max-width: 1400px;
   margin: 0 auto;
 }
+
+/* Force hide any navbar elements on analytics page */
+.analytics-page .header,
+.analytics-page .navbar,
+.analytics-page .nav-container {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Remove navbar height variables for analytics */
+.analytics-page .page-wrapper {
+  padding-top: 0 !important;
+}
+
+/* Ensure charts and containers don't reference navbar height */
+.analytics-page .chat-header {
+  top: 0 !important; /* Remove navbar height reference */
+}
+
+.analytics-page .chat-container {
+  height: 100vh !important; /* Remove navbar height calculation */
+}
+
+/* Rest of your analytics styles... */
 
 /* Overview Stats Grid */
 .overview-grid {
@@ -1123,13 +1150,15 @@
 
 /* Analytics Page */
 .analytics-page {
-  padding-top: var(--navbar-height);
+  padding-top: 0 !important; /* Force remove navbar padding */
   min-height: 100vh;
-  background: var(--color-bg-primary);
+  background: var(--color-bg-primary, #000000);
 }
 
 .analytics-section {
-  padding: var(--space-2xl) var(--space-lg);
+  padding: var(--space-2xl, 3rem) var(--space-lg, 1rem) !important;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .analytics-header {

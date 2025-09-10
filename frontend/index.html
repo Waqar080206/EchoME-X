@@ -3,213 +3,482 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EchoMe X - Create Your AI Twin</title>
+    <title>EchoMe X - Meet Your AI Twin</title>
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/pages.css">
     <link rel="stylesheet" href="css/utilities.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="index.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="page-wrapper">
-        <!-- Header -->
-        <header class="header">
-            <nav class="navbar">
-                <div class="nav-container">
-                    <div class="nav-brand">
-                        <a href="index.html" class="nav-logo">
-                            <div class="logo-icon">
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2L2 7V10C2 16 6 20.5 12 22C18 20.5 22 16 22 10V7L12 2Z"/>
-                                </svg>
-                            </div>
-                            <span class="logo-text">EchoMe X</span>
-                        </a>
-                    </div>
-                    
-                    <ul class="nav-menu">
-                        <li><a href="index.html" class="nav-link active">Home</a></li>
-                        <li><a href="chat.html" class="nav-link">Chat</a></li>
-                        <li><a href="analytics.html" class="nav-link">Analytics</a></li>
-                    </ul>
-                    
-                    <button class="nav-toggle d-md-block d-none">
-                        <span class="hamburger-line"></span>
-                        <span class="hamburger-line"></span>
-                        <span class="hamburger-line"></span>
-                    </button>
-                </div>
-            </nav>
-        </header>
+    <!-- Navbar will be loaded here dynamically -->
 
-        <!-- Main Content -->
-        <main class="landing-section">
-            <div class="container">
-                <div class="landing-content">
-                    <h1 class="landing-title animate-fade-in">
-                        Create Your AI Twin
-                    </h1>
-                    <p class="landing-subtitle animate-fade-in">
-                        Build an intelligent digital version of yourself that learns, adapts, and interacts just like you do.
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="main-text">Meet Your AI Twin.</span><br>
+                    <span class="accent-text">The Digital You.</span>
+                </h1>
+                <p class="hero-subtitle">
+                    EchoMe X lets you creates an intelligent AI version of yourself that learns, adapts and communicates with your unique personality and style.
+                </p>
+                <button class="hero-cta" onclick="openTwinWizard()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L2 7V10C2 16 6 20.5 12 22C18 20.5 22 16, 22 10V7L12 2Z"/>
+                    </svg>
+                    Create Your Twin
+                </button>
+            </div>
+            
+          <div class="hero-image">
+    <img src="assets/landingpage.jpg" alt="EchoMe X AI Twin Visualization" loading="lazy">
+</div>
+        </div>
+    </section>
+
+    <!-- Info Sections -->
+    <section class="info-sections">
+        <div class="info-container">
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-icon">🧠</div>
+                    <h3>Intelligent Conversations</h3>
+                    <p>
+                        Your AI twin learns from your communication patterns and responds authentically to any conversation.
                     </p>
+                </div>
 
-                    <!-- Twin Creation Form -->
-                    <div class="twin-form animate-fade-in" id="twinForm">
-                        <h2 class="form-title">Generate Your Twin</h2>
-                        
-                        <form id="createTwinForm" class="needs-validation" novalidate>
-                            <div class="form-group">
-                                <label for="name" class="form-label required">Twin Name</label>
-                                <input 
-                                    type="text" 
-                                    id="name" 
-                                    name="name" 
-                                    class="form-input" 
-                                    placeholder="Enter your twin's name" 
-                                    required
-                                    maxlength="50"
-                                >
-                                <div class="form-error" id="nameError"></div>
-                            </div>
+                <div class="info-card">
+                    <div class="info-icon">📊</div>
+                    <h3>Analytics Dashboard</h3>
+                    <p>
+                        Track engagement metrics, conversation insights, and see how your twin performs across interactions.
+                    </p>
+                </div>
 
-                            <div class="form-group">
-                                <label for="persona" class="form-label required">Persona Description (minimum 50 characters)</label>
-                                <textarea 
-                                    id="persona" 
-                                    name="persona" 
-                                    class="form-textarea" 
-                                    placeholder="Describe your personality, interests, and how you like to communicate..." 
-                                    required
-                                    minlength="50"
-                                    maxlength="500"
-                                    rows="4"
-                                ></textarea>
-                                <div class="d-flex justify-between align-center mt-xs">
-                                    <div class="form-error" id="personaError"></div>
-                                    <small class="text-muted">
-                                        <span id="charCount">0</span>/500 characters
-                                    </small>
-                                </div>
-                            </div>
+                <div class="info-card">
+                    <div class="info-icon">🔒</div>
+                    <h3>Privacy & Security</h3>
+                    <p>
+                        Your data is protected with enterprise-grade encryption and remains completely under your control.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                            <button type="submit" class="btn btn-primary btn-lg w-100 hover-lift">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2L2 7V10C2 16 6 20.5 12 22C18 20.5 22 16 22 10V7L12 2Z"/>
-                                </svg>
-                                Generate My Twin
-                            </button>
-                        </form>
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <h2>Ready to Meet Your Digital Self?</h2>
+        <p>
+            Join the future of AI-powered personal assistants.
+        </p>
+        <button class="final-cta-button" onclick="openTwinWizard()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            Generate AI Twin
+        </button>
+    </section>
+
+    <!-- Twin Creation Modal -->
+    <div class="modal-overlay" id="twinModal">
+        <div class="modal-content">
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Question 1 of 11</div>
+            </div>
+
+            <!-- Step 0: Name Input -->
+            <div class="quiz-step active" id="step0">
+                <div class="question-container">
+                    <h2 class="question-title">Let's start with your <span class="accent">name</span></h2>
+                    <p class="question-subtitle">What should we call your AI twin?</p>
+                    <input type="text" class="name-input" id="twinName" placeholder="Enter your name" maxlength="50">
+                    <div class="step-buttons">
+                        <button class="btn-cancel" onclick="closeTwinWizard()">Cancel</button>
+                        <button class="btn-continue" onclick="nextQuestion()" disabled>Continue</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1: Gender Question -->
+            <div class="quiz-step" id="step1">
+                <div class="question-container">
+                    <div class="question-number">Question 1</div>
+                    <h2 class="question-title">What's your <span class="accent">gender</span>?</h2>
+                    <p class="question-subtitle">This helps us personalize your AI twin's communication style</p>
+                    <div class="options-container">
+                        <button class="option-btn" data-value="male" onclick="selectOption(this)">
+                            <span class="option-letter">A</span>
+                            <span class="option-text">Male</span>
+                        </button>
+                        <button class="option-btn" data-value="female" onclick="selectOption(this)">
+                            <span class="option-letter">B</span>
+                            <span class="option-text">Female</span>
+                        </button>
+                        <button class="option-btn" data-value="other" onclick="selectOption(this)">
+                            <span class="option-letter">C</span>
+                            <span class="option-text">Other / Prefer not to say</span>
+                        </button>
+                    </div>
+                    <div class="step-buttons">
+                        <!-- Back button will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personality Questions (Steps 2-11) -->
+            <div class="quiz-step" id="step2">
+                <div class="question-container">
+                    <div class="question-number">Question 2</div>
+                    <h2 class="question-title">At <span class="accent">social events</span>, do you usually talk to new people or stick with those you know?</h2>
+                    <div class="options-container">
+                        <button class="option-btn" data-value="extraverted" onclick="selectOption(this)">
+                            <span class="option-letter">A</span>
+                            <span class="option-text">Talk to new people</span>
+                        </button>
+                        <button class="option-btn" data-value="introverted" onclick="selectOption(this)">
+                            <span class="option-letter">B</span>
+                            <span class="option-text">Stick with those I know</span>
+                        </button>
+                    </div>
+                    <div class="step-buttons">
+                        <!-- Back button will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-step" id="step3">
+                <div class="question-container">
+                    <div class="question-number">Question 3</div>
+                    <h2 class="question-title">Do you enjoy trying <span class="accent">new experiences</span> and ideas, or prefer familiar routines?</h2>
+                    <div class="options-container">
+                        <button class="option-btn" data-value="open" onclick="selectOption(this)">
+                            <span class="option-letter">A</span>
+                            <span class="option-text">Enjoy new experiences</span>
+                        </button>
+                        <button class="option-btn" data-value="traditional" onclick="selectOption(this)">
+                            <span class="option-letter">B</span>
+                            <span class="option-text">Prefer familiar routines</span>
+                        </button>
+                    </div>
+                    <div class="step-buttons">
+                        <!-- Back button will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-step" id="step4">
+                <div class="question-container">
+                    <div class="question-number">Question 4</div>
+                    <h2 class="question-title">When <span class="accent">planning tasks</span>, do you prefer structured schedules or flexible approaches?</h2>
+                    <div class="options-container">
+                        <button class="option-btn" data-value="organized" onclick="selectOption(this)">
+                            <span class="option-letter">A</span>
+                            <span class="option-text">Structured schedules</span>
+                        </button>
+                        <button class="option-btn" data-value="spontaneous" onclick="selectOption(this)">
+                            <span class="option-letter">B</span>
+                            <span class="option-text">Flexible approaches</span>
+                        </button>
+                    </div>
+                    <div class="step-buttons">
+                        <!-- Back button will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-step" id="step5">
+                <div class="question-container">
+                    <div class="question-number">Question 5</div>
+                    <h2 class="question-title">In <span class="accent">conflicts</span>, do you prioritize harmony with others or standing firm on your views?</h2>
+                    <div class="options-container">
+                        <button class="option-btn" data-value="agreeable" onclick="selectOption(this)">
+                            <span class="option-letter">A</span>
+                            <span class="option-text">Prioritize harmony</span>
+                        </button>
+                        <button class="option-btn" data-value="assertive" onclick="selectOption(this)">
+                            <span class="option-letter">B</span>
+                            <span class="option-text">Stand firm on views</span>
+                        </button>
+                    </div>
+                    <div class="step-buttons">
+                        <!-- Back button will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-step" id="step6">
+                <div class="question-container">
+                    <div class="question-number">Question 6</div>
+                    <h2 class="question-title">Do you often feel <span class="accent">stressed or worried</span> about everyday issues?</h2>
+                    <div class="options-container">
+                        <button class="option-btn" data-value="sensitive" onclick="selectOption(this)">
+                            <span class="option-letter">A</span>
+                            <span class="option-text">Often feel stressed</span>
+                        </button>
+                        <button class="option-btn" data-value="resilient" onclick="selectOption(this)">
+                            <span class="option-letter">B</span>
+                            <span class="option-text">Rarely feel stressed</span>
+                        </button>
+                    </div>
+                    <div class="step-buttons">
+                        <!-- Back button will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-step" id="step7">
+                <div class="question-container">
+                    <div class="question-number">Question 7</div>
+                    <h2 class="question-title">I generally expect <span class="accent">positive things</span> from my life.</h2>
+                    <div class="options-container">
+                        <button class="option-btn" data-value="optimistic" onclick="selectOption(this)">
+                            <span class="option-letter">A</span>
+                            <span class="option-text">Agree</span>
+                        </button>
+                        <button class="option-btn" data-value="realistic" onclick="selectOption(this)">
+                            <span class="option-letter">B</span>
+                            <span class="option-text">Disagree</span>
+                        </button>
+                    </div>
+                    <div class="step-buttons">
+                        <!-- Back button will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-step" id="step8">
+                <div class="question-container">
+                    <div class="question-number">Question 8</div>
+                    <h2 class="question-title">When solving problems, do you focus on <span class="accent">concrete facts</span> or imaginative possibilities?</h2>
+                    <div class="options-container">
+                        <button class="option-btn" data-value="practical" onclick="selectOption(this)">
+                            <span class="option-letter">A</span>
+                            <span class="option-text">Concrete facts</span>
+                        </button>
+                        <button class="option-btn" data-value="creative" onclick="selectOption(this)">
+                            <span class="option-letter">B</span>
+                            <span class="option-text">Imaginative possibilities</span>
+                        </button>
+                    </div>
+                    <div class="step-buttons">
+                        <!-- Back button will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-step" id="step9">
+                <div class="question-container">
+                    <div class="question-number">Question 9</div>
+                    <h2 class="question-title">Do you more often let your <span class="accent">heart rule your head</span> or your head rule your heart?</h2>
+                    <div class="options-container">
+                        <button class="option-btn" data-value="emotional" onclick="selectOption(this)">
+                            <span class="option-letter">A</span>
+                            <span class="option-text">Heart rule head</span>
+                        </button>
+                        <button class="option-btn" data-value="logical" onclick="selectOption(this)">
+                            <span class="option-letter">B</span>
+                            <span class="option-text">Head rule heart</span>
+                        </button>
+                    </div>
+                    <div class="step-buttons">
+                        <!-- Back button will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-step" id="step10">
+                <div class="question-container">
+                    <div class="question-number">Question 10</div>
+                    <h2 class="question-title">Do you prefer to <span class="accent">keep options open</span> or commit to plans early?</h2>
+                    <div class="options-container">
+                        <button class="option-btn" data-value="flexible" onclick="selectOption(this)">
+                            <span class="option-letter">A</span>
+                            <span class="option-text">Keep options open</span>
+                        </button>
+                        <button class="option-btn" data-value="decisive" onclick="selectOption(this)">
+                            <span class="option-letter">B</span>
+                            <span class="option-text">Commit early</span>
+                        </button>
+                    </div>
+                    <div class="step-buttons">
+                        <!-- Back button will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-step" id="step11">
+                <div class="question-container">
+                    <div class="question-number">Question 11</div>
+                    <h2 class="question-title">I believe most things in <span class="accent">life work out well</span>.</h2>
+                    <div class="options-container">
+                        <button class="option-btn" data-value="positive" onclick="selectOption(this)">
+                            <span class="option-letter">A</span>
+                            <span class="option-text">Agree</span>
+                        </button>
+                        <button class="option-btn" data-value="cautious" onclick="selectOption(this)">
+                            <span class="option-letter">B</span>
+                            <span class="option-text">Disagree</span>
+                        </button>
+                    </div>
+                    <div class="step-buttons">
+                        <!-- Back button will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Media Permissions Step -->
+            <div class="quiz-step" id="step12">
+                <div class="question-container">
+                    <div class="permissions-header">
+                        <div class="permissions-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2L2 7V10C2 16 6 20.5 12 22C18 20.5 22 16, 22 10V7L12 2Z"/>
+                            </svg>
+                        </div>
+                        <h2 class="question-title">Enhance Your <span class="accent">AI Twin</span></h2>
+                        <p class="question-subtitle">
+                            Allow us to analyze your social media activity to create a more personalized AI twin that better reflects your interests and communication style.
+                        </p>
                     </div>
 
-                    <!-- Loading State -->
-                    <div class="loading-state d-none" id="loadingState">
-                        <div class="spinner spinner-lg"></div>
-                        <h3 class="loading-text">Generating your twin...</h3>
-                        <p class="loading-subtext">This may take a few moments while we create your AI twin</p>
-                    </div>
-
-                    <!-- Features Preview -->
-                    <div class="features-preview mt-3xl">
-                        <div class="grid grid-3 md:grid-1">
-                            <div class="card hover-lift">
-                                <div class="card-header text-center">
-                                    <div class="feature-icon mx-auto mb-lg">
-                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9Z"/>
-                                        </svg>
-                                    </div>
+                    <div class="permissions-container">
+                        <div class="permission-item">
+                            <input type="checkbox" id="facebookPermission" class="social-checkbox">
+                            <label for="facebookPermission" class="checkbox-label">
+                                <div class="custom-checkbox">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                                    </svg>
                                 </div>
-                                <h3 class="card-title">Intelligent Conversations</h3>
-                                <p class="card-description">
-                                    Your twin learns from your personality and responds authentically to any question.
-                                </p>
-                            </div>
-
-                            <div class="card hover-lift">
-                                <div class="card-header text-center">
-                                    <div class="feature-icon mx-auto mb-lg">
-                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M16 6L18.29 8.29L13.41 13.17L9.41 9.17L2 16.59L3.41 18L9.41 12L13.41 16L19.71 9.71L22 12V6H16Z"/>
-                                        </svg>
+                                <div class="permission-content">
+                                    <div class="social-platform">
+                                        <span class="platform-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                                            </svg>
+                                        </span>
+                                        <span class="platform-name">Facebook</span>
                                     </div>
+                                    <div class="permission-description">Posts, interests, and public profile information</div>
                                 </div>
-                                <h3 class="card-title">Analytics Dashboard</h3>
-                                <p class="card-description">
-                                    Track engagement, interactions, and see how your twin is performing.
-                                </p>
-                            </div>
+                            </label>
+                        </div>
 
-                            <div class="card hover-lift">
-                                <div class="card-header text-center">
-                                    <div class="feature-icon mx-auto mb-lg">
-                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M12 2L2 7V10C2 16 6 20.5 12 22C18 20.5 22 16 22 10V7L12 2ZM12 8C13.1 8 14 8.9 14 10S13.1 12 12 12 10 11.1 10 10 10.9 8 12 8ZM18 14C16.68 16.64 14.5 18.4 12 18.4S7.32 16.64 6 14C6.89 13.11 8.07 12.5 9.4 12.14C9.78 12.05 10.2 12 10.65 12H13.35C13.8 12 14.22 12.05 14.6 12.14C15.93 12.5 17.11 13.11 18 14Z"/>
-                                        </svg>
-                                    </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="twitterPermission" class="social-checkbox">
+                            <label for="twitterPermission" class="checkbox-label">
+                                <div class="custom-checkbox">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                                    </svg>
                                 </div>
-                                <h3 class="card-title">Secure & Private</h3>
-                                <p class="card-description">
-                                    Your data is encrypted and protected with enterprise-grade security.
-                                </p>
-                            </div>
+                                <div class="permission-details">
+                                    <div class="social-platform">
+                                        <span class="platform-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-twitter-icon lucide-twitter"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg></span>
+                                        <span class="platform-name">Twitter (X)</span>
+                                    </div>
+                                    <div class="permission-description">Tweets, likes, and public interactions</div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="permission-item">
+                            <input type="checkbox" id="instagramPermission" class="social-checkbox">
+                            <label for="instagramPermission" class="checkbox-label">
+                                <div class="custom-checkbox">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                                    </svg>
+                                </div>
+                                <div class="permission-details">
+                                    <div class="social-platform">
+                                        <span class="platform-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-instagram-icon lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg></span>
+                                        <span class="platform-name">Instagram</span>
+                                    </div>
+                                    <div class="permission-description">Posts, stories, and activity patterns</div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="permission-item">
+                            <input type="checkbox" id="linkedinPermission" class="social-checkbox">
+                            <label for="linkedinPermission" class="checkbox-label">
+                                <div class="custom-checkbox">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                                    </svg>
+                                </div>
+                                <div class="permission-details">
+                                    <div class="social-platform">
+                                        <span class="platform-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-linkedin-icon lucide-linkedin"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg></span>
+                                        <span class="platform-name">LinkedIn</span>
+                                    </div>
+                                    <div class="permission-description">Professional posts and career interests</div>
+                                </div>
+                            </label>
                         </div>
                     </div>
+
+                    <div class="privacy-notice">
+                        <div class="privacy-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-lock-icon lucide-user-lock"><circle cx="10" cy="7" r="4"/><path d="M10.3 15H7a4 4 0 0 0-4 4v2"/><path d="M15 15.5V14a2 2 0 0 1 4 0v1.5"/><rect width="8" height="5" x="13" y="16" rx=".899"/></svg></div>
+                        <p>Your data is encrypted and secure. You can revoke these permissions anytime in your settings.</p>
+                    </div>
+
+                    <div class="permissions-buttons">
+                        <button class="permissions-back-btn" onclick="previousQuestion()" id="permissionsBackBtn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M19 12H5m7-7l-7 7 7 7"/>
+                            </svg>
+                            Back
+                        </button>
+                        <button class="btn-skip" onclick="skipSocialMedia()">
+                            <span>Skip</span>
+                        </button>
+                        <button class="btn-accept" onclick="acceptPermissions()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                            </svg>
+                            <span>Accept & Continue</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </main>
-    </div>
 
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">
-        <div class="toast-content">
-            <div class="toast-icon" id="toastIcon">
-                <!-- Icon will be injected here -->
+            <!-- Loading Step -->
+            <div class="quiz-step" id="loadingStep">
+                <div class="loading-container">
+                    <div class="loading-spinner">
+                        <div class="spinner-ring"></div>
+                        <div class="spinner-ring"></div>
+                        <div class="spinner-ring"></div>
+                    </div>
+                    <h2 class="loading-title">Creating Your <span class="accent">AI Twin</span></h2>
+                    <p class="loading-subtitle">Analyzing your personality and building your digital twin...</p>
+                    <div class="loading-progress">
+                        <div class="loading-bar" id="loadingBar"></div>
+                    </div>
+                </div>
             </div>
-            <div class="toast-message">
-                <div class="toast-title" id="toastTitle">Success</div>
-                <div class="toast-description" id="toastDescription">Your twin has been created successfully!</div>
-            </div>
-            <button class="toast-close" id="toastClose">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
-                </svg>
-            </button>
         </div>
     </div>
 
+    <!-- Load navbar first -->
+    <script src="sidebar.js"></script>
     <script src="utils.js"></script>
-    <script src="landing.js"></script>
     <script src="js/api.js"></script>
-    <script>
-    // Test the connection when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('🔗 Testing backend connection...');
-      
-      // Test form submission if it exists
-      const form = document.querySelector('form');
-      if (form) {
-        form.addEventListener('submit', async function(e) {
-          e.preventDefault();
-          
-          const formData = new FormData(form);
-          const name = formData.get('name');
-          const persona = formData.get('persona');
-          
-          console.log('📝 Form data:', { name, persona });
-          
-          try {
-            const result = await window.echoAPI.createTwin(name, persona);
-            console.log('✅ Twin created:', result);
-            alert('Twin created successfully!');
-          } catch (error) {
-            console.error('❌ Error creating twin:', error);
-            alert('Error: ' + error.message);
-          }
-        });
-      }
-    });
-    </script>
+    <script src="index.js"></script>
 </body>
 </html>

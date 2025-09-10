@@ -1,3 +1,8 @@
+console.log('🔍 Environment check on aiService load:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('GROQ_API_KEY exists:', !!process.env.GROQ_API_KEY);
+console.log('GROQ_API_KEY length:', process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.length : 0);
+
 const axios = require('axios');
 
 const generateResponse = async (message, persona) => {
@@ -91,4 +96,24 @@ const generateResponse = async (message, persona) => {
   }
 };
 
-module.exports = { generateResponse };
+const testGroqConnection = async () => {
+  try {
+    console.log('🧪 Testing Groq API connection...');
+    
+    const testResponse = await generateResponse(
+      'Hello, can you hear me?',
+      'You are a test assistant. Respond briefly and cheerfully.'
+    );
+    
+    console.log('✅ Groq test successful:', testResponse);
+    return true;
+  } catch (error) {
+    console.error('❌ Groq test failed:', error);
+    return false;
+  }
+};
+
+// Test on module load
+testGroqConnection();
+
+module.exports = { generateResponse, testGroqConnection };

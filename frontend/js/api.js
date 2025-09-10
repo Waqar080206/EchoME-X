@@ -59,6 +59,35 @@ class EchoMeAPI {
   async getTwinInfo() {
     return this.request('/twin');
   }
+
+  // Create Personality Twin
+  async createPersonalityTwin(personalityData) {
+    return this.request('/create-personality-twin', {
+      method: 'POST',
+      body: JSON.stringify(personalityData)
+    });
+  }
+
+  // Send Personality Chat Message
+  async sendPersonalityMessage(message, twinId) {
+    return this.request('/chat-personality', {
+      method: 'POST',
+      body: JSON.stringify({ message, twinId })
+    });
+  }
+
+  // Test AI Service
+  async testAI(message = 'Hello') {
+    return this.request('/test-ai', {
+      method: 'POST',
+      body: JSON.stringify({ message })
+    });
+  }
+
+  // Get Debug Info
+  async getDebugInfo() {
+    return this.request('/debug-twins');
+  }
 }
 
 // Global API instance
