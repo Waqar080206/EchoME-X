@@ -11,11 +11,12 @@ router.get('/health', (req, res) => {
 });
 
 // Twin routes
-router.post('/train', controller.createTwin);
+/*router.post('/train', controller.createTwin);*/
 router.get('/twin', controller.getTwin);
 
 // Chat routes
 router.post('/chat', controller.chat);
+router.post('/chat-with-personality', controller.chatWithPersonality); // ✅ Add this line
 
 // Analytics routes
 router.get('/analytics', controller.getAnalytics);
@@ -27,17 +28,29 @@ router.post('/chat-personality', controller.chatWithPersonality);
 // Replace the debug route
 router.get('/debug-twins', async (req, res) => {
   try {
-    const controller = require('../controllers/mainController');
-    const debugInfo = await controller.getDebugInfo();
+    const Twin = require('../models/Twin');
+    const twins = await Twin.find({}, '_id name userId personalityProfile').limit(10);
+    
+    console.log('🔍 Debug: Found twins in database:', twins.length);
+    twins.forEach(twin => {
+      console.log(`- Twin: ${twin.name} (ID: ${twin._id}, UserID: ${twin.userId})`);
+    });
     
     res.json({
-      ...debugInfo,
-      message: 'Debug info retrieved successfully'
+      success: true,
+      message: `Found ${twins.length} twins in database`,
+      twins: twins.map(twin => ({
+        id: twin._id.toString(),
+        name: twin.name,
+        userId: twin.userId,
+        hasPersonality: !!twin.personalityProfile
+      }))
     });
   } catch (error) {
-    console.error('Debug route error:', error);
+    console.error('Debug twins error:', error);
     res.status(500).json({
-      error: 'Failed to get debug info',
+      success: false,
+      error: 'Failed to debug twins',
       details: error.message
     });
   }
@@ -217,6 +230,24 @@ router.delete('/twin/:id', async (req, res) => {
       error: 'Failed to delete twin'
     });
   }
+});
+
+// Add this debug route to check environment variables
+router.get('/debug-env', (req, res) => {
+  console.log('🔍 Environment Debug:');
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log('GROQ_API_KEY exists:', !!process.env.GROQ_API_KEY);
+  console.log('GROQ_API_KEY first 10 chars:', process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.substring(0, 10) + '...' : 'NOT SET');
+  console.log('All env keys:', Object.keys(process.env).filter(key => key.includes('GROQ')));
+  
+  res.json({
+    success: true,
+    env: {
+      NODE_ENV: process.env.NODE_ENV,
+      hasGroqKey: !!process.env.GROQ_API_KEY,
+      groqKeyPreview: process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.substring(0, 10) + '...' : 'NOT SET'
+    }
+  });
 });
 
 module.exports = router;

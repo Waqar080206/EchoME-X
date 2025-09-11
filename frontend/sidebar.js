@@ -204,72 +204,61 @@ class SidebarManager {
     }
 
     handlePageSpecificContent() {
-        setTimeout(() => {
-            const twinListSection = document.getElementById('twinListSection');
-            const createSection = document.getElementById('createSection');
-
-            if (this.currentPage === 'chat') {
-                // Show twin list, hide create section
-                if (twinListSection) twinListSection.style.display = 'block';
-                if (createSection) createSection.style.display = 'none';
-                
-                // Load twins for chat page
+        const currentPath = window.location.pathname;
+        const isChat = currentPath.includes('chat.html') || currentPath.endsWith('/chat');
+        
+        const createSection = document.getElementById('createSection');
+        const twinListSection = document.getElementById('twinListSection');
+        
+        if (isChat) {
+            // Show twin list on chat page
+            if (createSection) createSection.style.display = 'none';
+            if (twinListSection) {
+                twinListSection.style.display = 'block';
                 this.loadTwinList();
-            } else {
-                // Show create section, hide twin list
-                if (twinListSection) twinListSection.style.display = 'none';
-                if (createSection) createSection.style.display = 'block';
             }
-        }, 300);
+        } else {
+            // Show create button on other pages
+            if (createSection) createSection.style.display = 'block';
+            if (twinListSection) twinListSection.style.display = 'none';
+        }
     }
 
     async loadTwinList() {
-        // Only load twins on chat page
-        if (this.currentPage !== 'chat') return;
-
+        const twinList = document.getElementById('twinList');
+        const twinListEmpty = document.getElementById('twinListEmpty');
+        
+        if (!twinList) return;
+        
         try {
-            const response = await fetch('/api/debug-twins');
-            const result = await response.json();
+            // Get twins from localStorage
+            const twinsData = localStorage.getItem('userTwins');
+            const twins = twinsData ? JSON.parse(twinsData) : [];
             
-            const twinList = document.getElementById('twinList');
-            const emptyState = document.getElementById('twinListEmpty');
+            console.log('Loading twins list:', twins);
             
-            let twinsToShow = [];
-            
-            if (result.twins && result.twins.length > 0) {
-                twinsToShow = result.twins;
+            if (twins.length === 0) {
+                twinList.innerHTML = '<div class="twin-list-empty">No twins created yet</div>';
+                return;
             }
             
-            // Also add current twin from localStorage
-            const storedTwinId = localStorage.getItem('twinId');
-            const storedTwinName = localStorage.getItem('twinName');
-            
-            if (storedTwinId && storedTwinName) {
-                const foundInAPI = twinsToShow.find(twin => twin.id === storedTwinId);
-                
-                if (!foundInAPI) {
-                    twinsToShow.unshift({
-                        id: storedTwinId,
-                        name: storedTwinName,
-                        conversationCount: 0,
-                        hasPersonality: true
-                    });
-                }
+            // Hide empty state
+            if (twinListEmpty) {
+                twinListEmpty.style.display = 'none';
             }
             
-            if (twinsToShow.length > 0 && twinList && emptyState) {
-                emptyState.style.display = 'none';
-                twinList.innerHTML = '';
-                
-                twinsToShow.forEach(twin => {
-                    const twinElement = this.createTwinListItem(twin);
-                    twinList.appendChild(twinElement);
-                });
-                
-                console.log('✅ Twins loaded in sidebar:', twinsToShow.map(t => t.name));
-            }
+            // Clear existing list
+            twinList.innerHTML = '';
+            
+            // Add each twin to the list
+            twins.forEach(twin => {
+                const twinElement = this.createTwinListItem(twin);
+                twinList.appendChild(twinElement);
+            });
+            
         } catch (error) {
-            console.warn('⚠️ Failed to load twins:', error);
+            console.error('Error loading twin list:', error);
+            twinList.innerHTML = '<div class="twin-list-empty">Error loading twins</div>';
         }
     }
 
@@ -278,39 +267,31 @@ class SidebarManager {
         twinItem.className = 'twin-item';
         twinItem.dataset.twinId = twin.id;
         
+        // Get initials for avatar
+        const initials = twin.name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+        
         twinItem.innerHTML = `
-            <div class="twin-item-icon">
-                ${twin.name.charAt(0).toUpperCase()}
-            </div>
+            <div class="twin-item-icon">${initials}</div>
             <div class="twin-item-content">
                 <div class="twin-item-name">${twin.name}</div>
-                <div class="twin-item-status">
-                    ${twin.conversationCount || 0} message${(twin.conversationCount || 0) !== 1 ? 's' : ''}
-                </div>
+                <div class="twin-item-status">${twin.status || 'Active'}</div>
             </div>
             <div class="twin-item-menu">
                 <button class="twin-menu-button" onclick="window.sidebarManager.toggleTwinMenu('${twin.id}', event)">
-                    <svg viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="1"/>
-                        <circle cx="12" cy="5" r="1"/>
-                        <circle cx="12" cy="19" r="1"/>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0-14a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
                     </svg>
                 </button>
-                <div class="twin-menu-dropdown" id="menu-${twin.id}">
+                <div class="twin-menu-dropdown" id="twinMenu-${twin.id}">
                     <button class="twin-menu-option" onclick="window.sidebarManager.shareTwin('${twin.id}')">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                            <polyline points="16,6 12,2 8,6"/>
-                            <line x1="12" y1="2" x2="12" y2="15"/>
+                        <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" fill="none">
+                            <path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 1 1 0-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 1 1 5.367-2.684 3 3 0 0 1-5.367 2.684zm0 9.316a3 3 0 1 1 5.367 2.684 3 3 0 0 1-5.367-2.684z"/>
                         </svg>
                         Share
                     </button>
                     <button class="twin-menu-option delete" onclick="window.sidebarManager.deleteTwin('${twin.id}')">
-                        <svg viewBox="0 0 24 24">
-                            <polyline points="3,6 5,6 21,6"/>
-                            <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
-                            <line x1="10" y1="11" x2="10" y2="17"/>
-                            <line x1="14" y1="11" x2="14" y2="17"/>
+                        <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" fill="none">
+                            <path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"/>
                         </svg>
                         Delete
                     </button>
@@ -318,7 +299,42 @@ class SidebarManager {
             </div>
         `;
         
+        // Add click handler to select twin
+        twinItem.addEventListener('click', (e) => {
+            // Don't select if clicking on menu button
+            if (e.target.closest('.twin-menu-button')) return;
+            
+            this.selectTwin(twin);
+        });
+        
         return twinItem;
+    }
+
+    selectTwin(twin) {
+        // Remove active class from all twins
+        document.querySelectorAll('.twin-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        // Add active class to selected twin
+        const twinElement = document.querySelector(`[data-twin-id="${twin.id}"]`);
+        if (twinElement) {
+            twinElement.classList.add('active');
+        }
+        
+        // Store as current twin
+        localStorage.setItem('currentTwin', JSON.stringify(twin));
+        localStorage.setItem('twinId', twin.id);
+        localStorage.setItem('twinName', twin.name);
+        
+        // Update chat interface if on chat page
+        if (window.location.pathname.includes('chat.html')) {
+            if (window.updateChatInterface) {
+                window.updateChatInterface(twin);
+            }
+        }
+        
+        console.log('Selected twin:', twin.name);
     }
 
     toggleSidebar() {
@@ -360,23 +376,146 @@ class SidebarManager {
         console.log('❌ Sidebar closed');
     }
 
-    // Twin management methods
     toggleTwinMenu(twinId, event) {
         event.stopPropagation();
-        const menu = document.getElementById(`menu-${twinId}`);
+        
+        // Close all other menus
+        document.querySelectorAll('.twin-menu-dropdown').forEach(menu => {
+            if (menu.id !== `twinMenu-${twinId}`) {
+                menu.classList.remove('active');
+            }
+        });
+        
+        // Toggle current menu
+        const menu = document.getElementById(`twinMenu-${twinId}`);
         if (menu) {
             menu.classList.toggle('active');
         }
+        
+        // Close menu when clicking outside
+        setTimeout(() => {
+            const closeMenus = (e) => {
+                if (!e.target.closest('.twin-item-menu')) {
+                    document.querySelectorAll('.twin-menu-dropdown').forEach(menu => {
+                        menu.classList.remove('active');
+                    });
+                    document.removeEventListener('click', closeMenus);
+                }
+            };
+            document.addEventListener('click', closeMenus);
+        }, 0);
     }
 
     shareTwin(twinId) {
-        console.log('Sharing twin:', twinId);
-        // Implement share functionality
+        try {
+            const twinsData = localStorage.getItem('userTwins');
+            const twins = twinsData ? JSON.parse(twinsData) : [];
+            const twin = twins.find(t => t.id === twinId);
+            
+            if (twin) {
+                // Create shareable link (you can customize this)
+                const shareUrl = `${window.location.origin}/chat.html?twin=${twinId}`;
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    // Show success message
+                    this.showNotification(`Share link for ${twin.name} copied to clipboard!`, 'success');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = shareUrl;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    this.showNotification(`Share link for ${twin.name} copied to clipboard!`, 'success');
+                });
+            }
+        } catch (error) {
+            console.error('Error sharing twin:', error);
+            this.showNotification('Failed to share twin', 'error');
+        }
+        
+        // Close menu
+        document.querySelectorAll('.twin-menu-dropdown').forEach(menu => {
+            menu.classList.remove('active');
+        });
     }
 
     deleteTwin(twinId) {
-        console.log('Deleting twin:', twinId);
-        // Implement delete functionality
+        try {
+            const twinsData = localStorage.getItem('userTwins');
+            const twins = twinsData ? JSON.parse(twinsData) : [];
+            const twin = twins.find(t => t.id === twinId);
+            
+            if (twin && confirm(`Are you sure you want to delete ${twin.name}? This action cannot be undone.`)) {
+                // Remove from twins list
+                const updatedTwins = twins.filter(t => t.id !== twinId);
+                localStorage.setItem('userTwins', JSON.stringify(updatedTwins));
+                
+                // If this was the current twin, clear it
+                const currentTwin = localStorage.getItem('currentTwin');
+                if (currentTwin) {
+                    const current = JSON.parse(currentTwin);
+                    if (current.id === twinId) {
+                        localStorage.removeItem('currentTwin');
+                        localStorage.removeItem('twinId');
+                        localStorage.removeItem('twinName');
+                    }
+                }
+                
+                // Reload the twin list
+                this.loadTwinList();
+                
+                this.showNotification(`${twin.name} has been deleted`, 'success');
+            }
+        } catch (error) {
+            console.error('Error deleting twin:', error);
+            this.showNotification('Failed to delete twin', 'error');
+        }
+        
+        // Close menu
+        document.querySelectorAll('.twin-menu-dropdown').forEach(menu => {
+            menu.classList.remove('active');
+        });
+    }
+
+    showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'error' ? '#ef4444' : '#10b981'};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 10);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
     }
 }
 

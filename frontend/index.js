@@ -347,50 +347,101 @@ async function createTwin(twinData) {
     }
 }
 
-// Function to show twin creation success - FIXED VERSION
+// Replace the showTwinCreationSuccess function around line 450
 function showTwinCreationSuccess(result) {
-    console.log('Showing success for result:', result);
+    console.log('🎉 Twin creation successful:', result);
     
-    // Hide current quiz step
-    document.querySelectorAll('.quiz-step').forEach(step => {
-        step.classList.remove('active');
-    });
+    // Ensure we have the proper MongoDB ID
+    if (!result.twinId) {
+        console.error('❌ No twinId received from backend:', result);
+        alert('Twin created but no ID received. Please try again.');
+        return;
+    }
     
-    // Create success step if it doesn't exist
+    console.log('📝 Backend returned twinId:', result.twinId);
+    console.log('📝 TwinId type:', typeof result.twinId);
+    console.log('📝 TwinId length:', result.twinId.length);
+    
+    // Validate that it looks like a MongoDB ObjectId (24 hex characters)
+    const mongoIdPattern = /^[0-9a-fA-F]{24}$/;
+    if (!mongoIdPattern.test(result.twinId)) {
+        console.error('❌ Invalid MongoDB ObjectId format:', result.twinId);
+        alert('Invalid twin ID format received. Please try again.');
+        return;
+    }
+    
+    console.log('✅ Valid MongoDB ObjectId received');
+    
+    // Store the twin data with the proper MongoDB ID
+    const twinData = {
+        id: result.twinId, // MongoDB ObjectId as string
+        _id: result.twinId, // Also store as _id for compatibility
+        name: answers.name || result.twin?.name || 'Your Twin',
+        status: 'active',
+        personality: result.twin?.personality || answers,
+        hasPersonality: true,
+        created: new Date().toISOString()
+    };
+    
+    console.log('💾 Storing twin data:', twinData);
+    
+    // Store current twin data
+    localStorage.setItem('currentTwin', JSON.stringify(twinData));
+    localStorage.setItem('twinId', twinData.id);
+    localStorage.setItem('twinName', twinData.name);
+    localStorage.setItem('personalityProfile', JSON.stringify(twinData.personality));
+    
+    // Add to twins list for sidebar
+    addTwinToList(twinData);
+    
+    console.log('✅ Twin data stored successfully with MongoDB ID:', twinData.id);
+    
+    // Show final success
+    showFinalSuccess(result);
+}
+
+// Update the showFinalSuccess function to use the backend-generated ID
+function showFinalSuccess(result) {
+    // Hide loading step
+    const loadingStep = document.getElementById('loadingStep');
+    if (loadingStep) {
+        loadingStep.classList.remove('active');
+    }
+    
+    // Find the quiz container
+    let quizContainer = document.querySelector('.quiz-container') || 
+                       document.querySelector('.modal-content') || 
+                       document.querySelector('#twinModal .modal-content');
+    
+    if (!quizContainer) {
+        // Fallback: redirect to chat
+        alert('Twin created successfully! Redirecting to chat...');
+        setTimeout(() => {
+            window.location.href = 'chat.html';
+        }, 1000);
+        return;
+    }
+    
+    // Create or update success step
     let successStep = document.getElementById('successStep');
     if (!successStep) {
         successStep = document.createElement('div');
         successStep.className = 'quiz-step';
         successStep.id = 'successStep';
-        document.querySelector('.quiz-container').appendChild(successStep);
+        quizContainer.appendChild(successStep);
     }
     
-    // Show success content
+    // Simple success content - just congratulations and start button
+    const twinName = result.twin?.name || answers.name || 'Your Twin';
+    
     successStep.innerHTML = `
         <div class="question-container">
-            <div class="success-icon">✅</div>
-            <h2 class="question-title">Your AI Twin is <span class="accent">Ready!</span></h2>
-            <div class="twin-info">
-                <p><strong>Twin ID:</strong> ${result.twin?.id || 'Generated'}</p>
-                <p><strong>Created:</strong> ${new Date().toLocaleString()}</p>
-                <p><strong>Status:</strong> Active</p>
-            </div>
-            
-            <div class="personality-preview">
-                <h3>Personality Traits Preview:</h3>
-                <div class="traits-preview">
-                    ${result.twin?.personality ? Object.entries(result.twin.personality).slice(0, 3).map(([trait, value]) => `
-                        <div class="trait-preview">
-                            <span>${trait.charAt(0).toUpperCase() + trait.slice(1)}:</span>
-                            <span class="trait-value">${value}%</span>
-                        </div>
-                    `).join('') : '<p>Personality analysis complete!</p>'}
-                </div>
-            </div>
+            <div class="success-icon">🎉</div>
+            <h2 class="question-title">Congratulations!</h2>
+            <p class="success-message">${twinName} has been created successfully!</p>
             
             <div class="action-buttons">
                 <button onclick="goToChat()" class="btn-primary">Start Chatting</button>
-                <button onclick="goToAnalytics()" class="btn-secondary">View Analytics</button>
             </div>
         </div>
     `;
@@ -399,14 +450,76 @@ function showTwinCreationSuccess(result) {
     successStep.classList.add('active');
     
     // Hide progress bar
-    document.querySelector('.progress-container').style.display = 'none';
-    
-    // Store the twin data for navigation
-    if (result.twin) {
-        localStorage.setItem('twinId', result.twin.id);
-        localStorage.setItem('twinName', result.twin.name || result.twinId);
-        localStorage.setItem('personalityProfile', JSON.stringify(result.twin.personality || {}));
+    const progressContainer = document.querySelector('.progress-container');
+    if (progressContainer) {
+        progressContainer.style.display = 'none';
     }
+    
+    // Store the twin data using the backend-generated ID
+    const twinData = {
+        id: result.twinId || result.data?.id, // Use backend-generated MongoDB ID
+        name: answers.name || result.twin?.name || 'Your Twin',
+        status: 'active',
+        personality: result.twin?.personality || {},
+        created: new Date().toISOString()
+    };
+    
+    // Store current twin and add to twins list
+    localStorage.setItem('currentTwin', JSON.stringify(twinData));
+    localStorage.setItem('twinId', twinData.id); // This should be the MongoDB ID
+    localStorage.setItem('twinName', twinData.name);
+    localStorage.setItem('personalityProfile', JSON.stringify(twinData.personality));
+    
+    // Add to twins list for sidebar
+    addTwinToList(twinData);
+    
+    console.log('✅ Twin data stored with backend ID:', twinData);
+}
+
+// Add function to manage twins list
+function addTwinToList(twinData) {
+    let twins = [];
+    try {
+        const existingTwins = localStorage.getItem('userTwins');
+        if (existingTwins) {
+            twins = JSON.parse(existingTwins);
+        }
+    } catch (error) {
+        console.error('Error parsing existing twins:', error);
+        twins = [];
+    }
+    
+    // Check if twin already exists (avoid duplicates)
+    const existingIndex = twins.findIndex(twin => twin.id === twinData.id);
+    if (existingIndex > -1) {
+        // Update existing twin
+        twins[existingIndex] = twinData;
+    } else {
+        // Add new twin
+        twins.push(twinData);
+    }
+    
+    // Store updated twins list
+    localStorage.setItem('userTwins', JSON.stringify(twins));
+    
+    console.log('Twin added to list. Total twins:', twins.length);
+}
+
+// Update the animateLoading function to be more realistic
+function animateLoading() {
+    const loadingBar = document.getElementById('loadingBar');
+    let progress = 0;
+    
+    const interval = setInterval(() => {
+        progress += Math.random() * 10 + 5; // Faster progress
+        if (progress > 100) progress = 100;
+        
+        loadingBar.style.width = `${progress}%`;
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+        }
+    }, 150);
 }
 
 // Navigation functions
@@ -419,10 +532,27 @@ function goToAnalytics() {
 }
 
 function createNewTwin() {
-    localStorage.removeItem('currentTwin');
-    window.location.reload();
+    // Reset the quiz
+    currentStep = 0;
+    answers = {};
+    
+    // Hide success step
+    const successStep = document.getElementById('successStep');
+    if (successStep) {
+        successStep.classList.remove('active');
+    }
+    
+    // Show first step
+    showQuestion(0);
+    
+    // Show progress bar again
+    const progressContainer = document.querySelector('.progress-container');
+    if (progressContainer) {
+        progressContainer.style.display = 'block';
+    }
 }
 
+// Update the buildPersonalityData function around line 476
 function buildPersonalityData(answers) {
     console.log('Building personality data from answers:', answers);
     
@@ -446,9 +576,9 @@ function buildPersonalityData(answers) {
         worldview: answers.q10 === 'positive' ? 'optimistic' : 'realistic'
     };
 
-    // Build comprehensive personality profile
+    // Build comprehensive personality profile with the quiz name
     const personalityProfile = {
-        name: answers.name,
+        name: answers.name, // This is the name from the first question
         gender: answers.gender,
         bigFiveTraits: {
             extraversion: traits.extraversion,
@@ -475,22 +605,6 @@ function buildPersonalityData(answers) {
     };
 
     return personalityProfile;
-}
-
-function animateLoading() {
-    const loadingBar = document.getElementById('loadingBar');
-    let progress = 0;
-    
-    const interval = setInterval(() => {
-        progress += Math.random() * 15;
-        if (progress > 90) progress = 90; // Stop at 90% until API call completes
-        
-        loadingBar.style.width = `${progress}%`;
-        
-        if (progress >= 90) {
-            clearInterval(interval);
-        }
-    }, 200);
 }
 
 // Initialize when DOM is loaded

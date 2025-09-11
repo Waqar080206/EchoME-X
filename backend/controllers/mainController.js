@@ -238,7 +238,7 @@ exports.chat = async (req, res) => {
   }
 };
 
-// Personality-based chat
+// Update the chatWithPersonality function around line 240
 exports.chatWithPersonality = async (req, res) => {
   try {
     const { message, twinId } = req.body;
@@ -255,7 +255,28 @@ exports.chatWithPersonality = async (req, res) => {
       });
     }
 
+    if (!twinId?.trim()) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Twin ID is required' 
+      });
+    }
+
     console.log('🔍 Looking for twin in MongoDB with ID:', twinId);
+    
+    // Validate if twinId is a valid MongoDB ObjectId
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(twinId)) {
+      console.log('❌ Invalid MongoDB ObjectId format:', twinId);
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid twin ID format',
+        debug: {
+          providedId: twinId,
+          isValidObjectId: false
+        }
+      });
+    }
     
     const twin = await Twin.findById(twinId);
     if (!twin) {

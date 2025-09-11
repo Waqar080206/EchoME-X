@@ -21,6 +21,9 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Serve static files from frontend directory
+app.use(express.static(path.join(__dirname, '../frontend')));
+
 // Security headers for production
 if (isProduction) {
   app.use((req, res, next) => {
@@ -62,114 +65,15 @@ app.get('/test', (req, res) => {
   });
 });
 
-// API Routes - Add the exact endpoint your frontend calls
-app.post('/api/create-personality-twin', (req, res) => {
-  try {
-    console.log('Creating personality twin with data:', req.body);
-    
-    const { answers, socialMedia, permissions } = req.body;
-    
-    // Generate a unique twin ID
-    const twinId = 'twin_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    
-    // Simulate personality analysis
-    const personalityTraits = {
-      openness: Math.floor(Math.random() * 100),
-      conscientiousness: Math.floor(Math.random() * 100),
-      extraversion: Math.floor(Math.random() * 100),
-      agreeableness: Math.floor(Math.random() * 100),
-      neuroticism: Math.floor(Math.random() * 100)
-    };
-    
-    res.json({
-      success: true,
-      message: 'Personality twin created successfully!',
-      twin: {
-        id: twinId,
-        personality: personalityTraits,
-        answers: answers || {},
-        socialMedia: socialMedia || {},
-        permissions: permissions || {},
-        created: new Date().toISOString(),
-        status: 'active'
-      }
-    });
-  } catch (error) {
-    console.error('Error creating personality twin:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create personality twin',
-      details: error.message
-    });
-  }
-});
+// API Routes
+app.use('/api', apiRoutes);
 
-// Legacy train endpoint
-app.post('/api/train', (req, res) => {
-  try {
-    console.log('Received train request:', req.body);
-    res.json({
-      success: true,
-      message: 'Twin trained successfully!',
-      twinId: 'twin_' + Date.now()
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Training failed'
-    });
-  }
+// Remove or comment out the duplicate endpoints below since they're handled by routes/api.js
+/*
+app.post('/api/chat-with-personality', async (req, res) => {
+    // Remove this duplicate
 });
-
-// Twin info endpoint
-app.get('/api/twin-info', (req, res) => {
-  res.json({
-    success: true,
-    twin: {
-      id: 'twin_example',
-      name: 'Your AI Twin',
-      personality: 'friendly and helpful',
-      created: new Date().toISOString(),
-      status: 'active'
-    }
-  });
-});
-
-// Chat endpoints
-app.post('/api/chat', (req, res) => {
-  try {
-    const { message } = req.body;
-    
-    res.json({
-      success: true,
-      response: `Echo: ${message}`,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Chat failed'
-    });
-  }
-});
-
-app.post('/api/chat-with-personality', (req, res) => {
-  try {
-    const { message, twinId } = req.body;
-    
-    res.json({
-      success: true,
-      response: `Personality response to: ${message}`,
-      twinId: twinId,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Personality chat failed'
-    });
-  }
-});
+*/
 
 // Debug endpoint to see all available routes
 app.get('/api/routes', (req, res) => {
@@ -186,6 +90,13 @@ app.get('/api/routes', (req, res) => {
       'GET /api/routes'
     ]
   });
+});
+
+// Serve frontend for any non-API routes (SPA fallback)
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
+  }
 });
 
 // 404 handler with better debugging
@@ -206,7 +117,8 @@ app.use('*', (req, res) => {
       'POST /api/train',
       'GET /api/twin-info',
       'POST /api/chat',
-      'POST /api/chat-with-personality'
+      'POST /api/chat-with-personality', // ✅ Correct endpoint name
+      'GET /api/debug-twins'
     ]
   });
 });
@@ -231,6 +143,8 @@ const startServer = async () => {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🎨 Frontend available at: http://localhost:${PORT}`);
+      console.log(`📡 Backend API at: http://localhost:${PORT}/api`);
       console.log('📡 Available endpoints:');
       console.log('  POST /api/create-personality-twin');
       console.log('  POST /api/train');
