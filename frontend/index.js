@@ -295,44 +295,16 @@ function acceptPermissions() {
     createTwin(twinData);
 }
 
-// Function to collect quiz data
+// Function to collect quiz data - FIXED VERSION
 function collectQuizData() {
-    const answers = {};
-    const socialMedia = {};
-    const permissions = {};
+    console.log('Collecting quiz data from answers object:', answers);
     
-    // Collect quiz answers
-    const quizForm = document.querySelector('#quiz-form') || document.querySelector('form');
-    if (quizForm) {
-        const formData = new FormData(quizForm);
-        for (let [key, value] of formData.entries()) {
-            answers[key] = value;
-        }
-    }
+    // Use the global answers object that's populated during the quiz
+    const personalityData = buildPersonalityData(answers);
     
-    // Collect radio button answers
-    document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
-        answers[radio.name] = radio.value;
-    });
+    console.log('Built personality data:', personalityData);
     
-    // Collect text inputs
-    document.querySelectorAll('input[type="text"], textarea').forEach(input => {
-        if (input.value.trim()) {
-            answers[input.name || input.id] = input.value.trim();
-        }
-    });
-    
-    // Collect social media permissions (if any checkboxes exist)
-    document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-        permissions[checkbox.name || checkbox.id] = true;
-    });
-    
-    return {
-        answers,
-        socialMedia,
-        permissions,
-        timestamp: new Date().toISOString()
-    };
+    return personalityData;
 }
 
 // Replace the existing createTwin function
@@ -375,80 +347,66 @@ async function createTwin(twinData) {
     }
 }
 
-// Function to show twin creation success
+// Function to show twin creation success - FIXED VERSION
 function showTwinCreationSuccess(result) {
-    // Hide the quiz
-    const quizContainer = document.querySelector('.quiz-container') || 
-                         document.querySelector('.step-content') ||
-                         document.querySelector('#quiz-section');
-    if (quizContainer) {
-        quizContainer.style.display = 'none';
+    console.log('Showing success for result:', result);
+    
+    // Hide current quiz step
+    document.querySelectorAll('.quiz-step').forEach(step => {
+        step.classList.remove('active');
+    });
+    
+    // Create success step if it doesn't exist
+    let successStep = document.getElementById('successStep');
+    if (!successStep) {
+        successStep = document.createElement('div');
+        successStep.className = 'quiz-step';
+        successStep.id = 'successStep';
+        document.querySelector('.quiz-container').appendChild(successStep);
     }
     
-    // Show success message
-    const successHtml = `
-        <div class="twin-success-container">
+    // Show success content
+    successStep.innerHTML = `
+        <div class="question-container">
             <div class="success-icon">✅</div>
-            <h2>Your AI Twin is Ready!</h2>
+            <h2 class="question-title">Your AI Twin is <span class="accent">Ready!</span></h2>
             <div class="twin-info">
-                <p><strong>Twin ID:</strong> ${result.twin.id}</p>
-                <p><strong>Created:</strong> ${new Date(result.twin.created).toLocaleString()}</p>
-                <p><strong>Status:</strong> ${result.twin.status}</p>
+                <p><strong>Twin ID:</strong> ${result.twin?.id || 'Generated'}</p>
+                <p><strong>Created:</strong> ${new Date().toLocaleString()}</p>
+                <p><strong>Status:</strong> Active</p>
             </div>
-            <div class="personality-traits">
-                <h3>Personality Analysis:</h3>
-                <div class="traits-grid">
-                    <div class="trait">
-                        <span>Openness:</span>
-                        <div class="trait-bar">
-                            <div class="trait-fill" style="width: ${result.twin.personality.openness}%"></div>
+            
+            <div class="personality-preview">
+                <h3>Personality Traits Preview:</h3>
+                <div class="traits-preview">
+                    ${result.twin?.personality ? Object.entries(result.twin.personality).slice(0, 3).map(([trait, value]) => `
+                        <div class="trait-preview">
+                            <span>${trait.charAt(0).toUpperCase() + trait.slice(1)}:</span>
+                            <span class="trait-value">${value}%</span>
                         </div>
-                        <span>${result.twin.personality.openness}%</span>
-                    </div>
-                    <div class="trait">
-                        <span>Conscientiousness:</span>
-                        <div class="trait-bar">
-                            <div class="trait-fill" style="width: ${result.twin.personality.conscientiousness}%"></div>
-                        </div>
-                        <span>${result.twin.personality.conscientiousness}%</span>
-                    </div>
-                    <div class="trait">
-                        <span>Extraversion:</span>
-                        <div class="trait-bar">
-                            <div class="trait-fill" style="width: ${result.twin.personality.extraversion}%"></div>
-                        </div>
-                        <span>${result.twin.personality.extraversion}%</span>
-                    </div>
-                    <div class="trait">
-                        <span>Agreeableness:</span>
-                        <div class="trait-bar">
-                            <div class="trait-fill" style="width: ${result.twin.personality.agreeableness}%"></div>
-                        </div>
-                        <span>${result.twin.personality.agreeableness}%</span>
-                    </div>
-                    <div class="trait">
-                        <span>Neuroticism:</span>
-                        <div class="trait-bar">
-                            <div class="trait-fill" style="width: ${result.twin.personality.neuroticism}%"></div>
-                        </div>
-                        <span>${result.twin.personality.neuroticism}%</span>
-                    </div>
+                    `).join('') : '<p>Personality analysis complete!</p>'}
                 </div>
             </div>
+            
             <div class="action-buttons">
                 <button onclick="goToChat()" class="btn-primary">Start Chatting</button>
                 <button onclick="goToAnalytics()" class="btn-secondary">View Analytics</button>
-                <button onclick="createNewTwin()" class="btn-outline">Create New Twin</button>
             </div>
         </div>
     `;
     
-    // Find where to display the success message
-    const container = document.querySelector('.container') || 
-                     document.querySelector('.main-content') || 
-                     document.body;
+    // Show success step
+    successStep.classList.add('active');
     
-    container.innerHTML = successHtml;
+    // Hide progress bar
+    document.querySelector('.progress-container').style.display = 'none';
+    
+    // Store the twin data for navigation
+    if (result.twin) {
+        localStorage.setItem('twinId', result.twin.id);
+        localStorage.setItem('twinName', result.twin.name || result.twinId);
+        localStorage.setItem('personalityProfile', JSON.stringify(result.twin.personality || {}));
+    }
 }
 
 // Navigation functions
@@ -466,6 +424,14 @@ function createNewTwin() {
 }
 
 function buildPersonalityData(answers) {
+    console.log('Building personality data from answers:', answers);
+    
+    // Validate we have required data
+    if (!answers.name) {
+        console.error('Missing name in answers');
+        return null;
+    }
+    
     // Map quiz answers to personality traits
     const traits = {
         extraversion: answers.q1 === 'extraverted' ? 0.8 : 0.2,
@@ -505,18 +471,7 @@ function buildPersonalityData(answers) {
         },
         socialMediaPermissions: answers.socialMediaPermissions || 'skipped',
         createdAt: new Date().toISOString(),
-        responses: {
-            q1: answers.q1, // Social interaction
-            q2: answers.q2, // Openness to experience
-            q3: answers.q3, // Organization
-            q4: answers.q4, // Conflict resolution
-            q5: answers.q5, // Stress response
-            q6: answers.q6, // Optimism
-            q7: answers.q7, // Problem solving
-            q8: answers.q8, // Decision making
-            q9: answers.q9, // Planning style
-            q10: answers.q10 // Life outlook
-        }
+        responses: answers // Include all raw answers
     };
 
     return personalityProfile;

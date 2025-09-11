@@ -61,38 +61,76 @@ function generatePersonalizedResponse(twin, userMessage) {
   return response;
 }
 
-// Original twin creation (update to use MongoDB)
-exports.createTwin = async (req, res) => {
-  try {
-    const { name, content } = req.body;
+// Replace the existing createTwin function - FINAL VERSION
+async function createTwin(twinData) {
+    try {
+        // Show loading step
+        document.querySelectorAll('.quiz-step').forEach(step => {
+            step.classList.remove('active');
+        });
+        document.getElementById('loadingStep').classList.add('active');
+        animateLoading();
+        
+        console.log('Creating personality twin with data:', twinData);
+        
+        // If twinData is undefined, collect it from the quiz
+        if (!twinData) {
+            console.log('No twinData provided, collecting from quiz...');
+            twinData = collectQuizData();
+            console.log('Collected quiz data:', twinData);
+        }
+        
+        // Validate we have the required data
+        if (!twinData || !twinData.name) {
+            throw new Error('Missing required twin data. Please complete the quiz.');
+        }
+        
+        const response = await fetch(`${API_BASE_URL}/api/create-personality-twin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(twinData)
+        });
 
-    if (!name || !content) {
-      return res.status(400).json({ error: 'Name and content are required' });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Twin creation successful:', result);
+        
+        // Complete the loading animation
+        const loadingBar = document.getElementById('loadingBar');
+        if (loadingBar) {
+            loadingBar.style.width = '100%';
+        }
+        
+        // Show success after a brief delay
+        setTimeout(() => {
+            showTwinCreationSuccess(result);
+        }, 1000);
+        
+        return result;
+        
+    } catch (error) {
+        console.error('❌ Error creating personality twin:', error);
+        
+        // Show error in the modal instead of alert
+        document.querySelectorAll('.quiz-step').forEach(step => {
+            step.classList.remove('active');
+        });
+        
+        // Show error step (you can create this similar to success step)
+        alert('Error creating twin: ' + error.message);
+        
+        // Go back to permissions step
+        currentStep = 12;
+        document.getElementById('step12').classList.add('active');
+        
+        throw error;
     }
-
-    const twin = new Twin({
-      name: name.trim(),
-      persona: content.trim(),
-      userId: generateUserId(),
-      personalityProfile: null,
-      conversationHistory: []
-    });
-
-    const savedTwin = await twin.save();
-    
-    console.log(`✅ Basic twin created: ${savedTwin.name} (ID: ${savedTwin._id})`);
-
-    res.status(201).json({
-      success: true,
-      message: 'Twin created successfully!',
-      data: { id: savedTwin._id.toString(), name: savedTwin.name, userId: savedTwin.userId }
-    });
-
-  } catch (error) {
-    console.error('Create twin error:', error);
-    res.status(500).json({ error: 'Failed to create twin' });
-  }
-};
+}
 
 // Personality-based twin creation
 exports.createPersonalityTwin = async (req, res) => {
