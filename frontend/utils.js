@@ -2,18 +2,7 @@
 // This file contains common functions used across multiple pages
 
 // API Configuration - Updated for production
-const API_BASE_URL = (() => {
-    const isDevelopment = window.location.hostname === 'localhost' || 
-                         window.location.hostname === '127.0.0.1' ||
-                         window.location.hostname.includes('192.168.');
-    
-    if (isDevelopment) {
-        return 'http://localhost:3001';
-    }
-    
-    // Your live Render backend URL
-    return 'https://echome-x.onrender.com';
-})();
+const API_BASE_URL = 'https://echome-x.onrender.com'; // Replace with your actual Render URL
 
 console.log('🔗 API Base URL:', API_BASE_URL);
 
@@ -74,6 +63,28 @@ async function makeAPICall(endpoint, options = {}) {
         }
 
         // Re-throw other errors
+        throw error;
+    }
+}
+
+// Send message API call
+async function sendMessage(message) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/chat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('API call failed:', error);
         throw error;
     }
 }
@@ -238,16 +249,108 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// Twin creation utilities
+async function createTwin(twinData) {
+    try {
+        console.log('🚀 Creating personality twin with data:', twinData);
+        
+        // If twinData is undefined, collect it
+        if (!twinData) {
+            twinData = collectQuizData();
+            console.log('📊 Collected quiz data:', twinData);
+        }
+        
+        // Show loading state
+        showLoadingStep();
+        
+        const response = await fetch(`${API_BASE_URL}/api/create-personality-twin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(twinData)
+        });
+
+        console.log('🌐 Create twin response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Server error:', errorText);
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Twin creation successful:', result);
+        
+        if (result.success) {
+            // Complete the loading animation
+            const loadingBar = document.getElementById('loadingBar');
+            if (loadingBar) {
+                loadingBar.style.width = '100%';
+            }
+            
+            // Show success after a brief delay
+            setTimeout(() => {
+                showFinalSuccess(result);
+            }, 1500);
+        } else {
+            throw new Error(result.error || 'Twin creation failed');
+        }
+        
+        return result;
+        
+    } catch (error) {
+        console.error('❌ Error creating personality twin:', error);
+        
+        // Hide loading step
+        const loadingStep = document.getElementById('loadingStep');
+        if (loadingStep) {
+            loadingStep.classList.remove('active');
+        }
+        
+        // Show error message
+        alert(`Error creating your twin: ${error.message}\n\nPlease try again.`);
+        
+        // Go back to the quiz
+        currentStep = 11; // Go back to last question
+        showCurrentStep();
+    }
+}
+
+function showLoadingStep() {
+    // Hide all other steps
+    document.querySelectorAll('.quiz-step').forEach(step => {
+        step.classList.remove('active');
+    });
+    
+    // Show loading step
+    const loadingStep = document.getElementById('loadingStep');
+    if (loadingStep) {
+        loadingStep.classList.add('active');
+        
+        // Animate the loading bar
+        const loadingBar = document.getElementById('loadingBar');
+        if (loadingBar) {
+            loadingBar.style.width = '0%';
+            setTimeout(() => {
+                loadingBar.style.width = '90%';
+            }, 500);
+        }
+    }
+}
+
 // Export functions for use in other files
 window.EchoMeUtils = {
     API_BASE_URL,
     APIError,
     makeAPICall,
+    sendMessage,
     getUserData,
     setUserData,
     clearUserData,
     validateUserId,
     validateMessage,
     showNotification,
-    initializeMobileNavigation
+    initializeMobileNavigation,
+    createTwin
 };

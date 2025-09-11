@@ -2,6 +2,8 @@ let currentStep = 0;
 const totalSteps = 13; // 1 name + 1 gender + 10 questions + 1 permissions
 const answers = {};
 
+const API_BASE_URL = 'https://echome-x.onrender.com';
+
 function openTwinWizard() {
     document.getElementById('twinModal').classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -400,54 +402,15 @@ function showTwinCreationSuccess(result) {
     showFinalSuccess(result);
 }
 
-// Update the showFinalSuccess function to use the backend-generated ID
+// Replace the showFinalSuccess function
 function showFinalSuccess(result) {
-    // Hide loading step
-    const loadingStep = document.getElementById('loadingStep');
-    if (loadingStep) {
-        loadingStep.classList.remove('active');
-    }
+    console.log('🎉 Showing final success with result:', result);
     
-    // Find the quiz container
-    let quizContainer = document.querySelector('.quiz-container') || 
-                       document.querySelector('.modal-content') || 
-                       document.querySelector('#twinModal .modal-content');
-    
-    if (!quizContainer) {
-        // Fallback: redirect to chat
-        alert('Twin created successfully! Redirecting to chat...');
-        setTimeout(() => {
-            window.location.href = 'chat.html';
-        }, 1000);
-        return;
-    }
-    
-    // Create or update success step
-    let successStep = document.getElementById('successStep');
-    if (!successStep) {
-        successStep = document.createElement('div');
-        successStep.className = 'quiz-step';
-        successStep.id = 'successStep';
-        quizContainer.appendChild(successStep);
-    }
-    
-    // Simple success content - just congratulations and start button
-    const twinName = result.twin?.name || answers.name || 'Your Twin';
-    
-    successStep.innerHTML = `
-        <div class="question-container">
-            <div class="success-icon">🎉</div>
-            <h2 class="question-title">Congratulations!</h2>
-            <p class="success-message">${twinName} has been created successfully!</p>
-            
-            <div class="action-buttons">
-                <button onclick="goToChat()" class="btn-primary">Start Chatting</button>
-            </div>
-        </div>
-    `;
-    
-    // Show success step
-    successStep.classList.add('active');
+    // Hide ALL existing steps
+    document.querySelectorAll('.quiz-step').forEach(step => {
+        step.classList.remove('active');
+        step.style.display = 'none';
+    });
     
     // Hide progress bar
     const progressContainer = document.querySelector('.progress-container');
@@ -455,25 +418,87 @@ function showFinalSuccess(result) {
         progressContainer.style.display = 'none';
     }
     
-    // Store the twin data using the backend-generated ID
+    // Create or get success step
+    let successStep = document.getElementById('successStep');
+    if (!successStep) {
+        successStep = document.createElement('div');
+        successStep.className = 'quiz-step';
+        successStep.id = 'successStep';
+        
+        const modalContent = document.querySelector('.modal-content');
+        modalContent.appendChild(successStep);
+    }
+    
+    const twinName = result.twin?.name || result.name || answers.name || 'Your Twin';
+    
+    successStep.innerHTML = `
+        <div style="text-align: center; padding: 3rem 2rem; position: relative; z-index: 1000;">
+            <div style="font-size: 4rem; margin-bottom: 1.5rem;">🎉</div>
+            <h2 style="color: #8B5CF6; margin-bottom: 1rem; font-size: 2rem;">
+                Congratulations!
+            </h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2.5rem; color: #6B7280;">
+                <strong>${twinName}</strong> has been created successfully!<br>
+                Your AI twin is ready to chat with you.
+            </p>
+            
+            <button onclick="goToChat()" style="
+                background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+                color: white;
+                padding: 15px 30px;
+                border: none;
+                border-radius: 12px;
+                font-weight: 600;
+                font-size: 1.1rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+            ">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Start Chatting
+            </button>
+        </div>
+    `;
+    
+    // Show success step
+    successStep.style.display = 'block';
+    successStep.classList.add('active');
+    
+    // Store complete twin data
     const twinData = {
-        id: result.twinId || result.data?.id, // Use backend-generated MongoDB ID
-        name: answers.name || result.twin?.name || 'Your Twin',
-        status: 'active',
-        personality: result.twin?.personality || {},
-        created: new Date().toISOString()
+        id: result.twinId || result.twin?._id,
+        _id: result.twinId || result.twin?._id,
+        name: twinName,
+        hasPersonality: true,
+        personality: result.twin?.personality || result.personality
     };
     
-    // Store current twin and add to twins list
+    console.log('💾 Storing twin data:', twinData);
     localStorage.setItem('currentTwin', JSON.stringify(twinData));
-    localStorage.setItem('twinId', twinData.id); // This should be the MongoDB ID
+    localStorage.setItem('twinId', twinData.id);
     localStorage.setItem('twinName', twinData.name);
-    localStorage.setItem('personalityProfile', JSON.stringify(twinData.personality));
+}
+
+function goToChat() {
+    console.log('🚀 Navigating to chat...');
     
-    // Add to twins list for sidebar
-    addTwinToList(twinData);
+    const storedTwin = localStorage.getItem('currentTwin');
+    const storedTwinId = localStorage.getItem('twinId');
     
-    console.log('✅ Twin data stored with backend ID:', twinData);
+    if (!storedTwin || !storedTwinId) {
+        alert('Error: Twin data not found. Please try creating your twin again.');
+        return;
+    }
+    
+    // Close modal and navigate
+    closeTwinWizard();
+    setTimeout(() => {
+        window.location.href = 'chat.html';
+    }, 300);
 }
 
 // Add function to manage twins list
@@ -523,10 +548,6 @@ function animateLoading() {
 }
 
 // Navigation functions
-function goToChat() {
-    window.location.href = 'chat.html';
-}
-
 function goToAnalytics() {
     window.location.href = 'analytics.html';
 }

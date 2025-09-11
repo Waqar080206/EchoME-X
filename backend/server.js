@@ -19,8 +19,8 @@ app.use(cors({
     'http://localhost:3000',
     'http://localhost:5173',
     'http://127.0.0.1:5500',
-    'https://your-vercel-app-name.vercel.app', // Replace with your actual Vercel URL
-    'https://echo-me-x.vercel.app' // If this is your domain
+    'https://echo-me-x.vercel.app',
+    'https://www.echo-me-x.vercel.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
