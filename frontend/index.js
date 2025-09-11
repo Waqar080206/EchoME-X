@@ -628,6 +628,42 @@ function buildPersonalityData(answers) {
     return personalityProfile;
 }
 
+function showQuestion(stepNumber) {
+    console.log('📋 Showing question step:', stepNumber);
+    
+    // Hide all steps
+    document.querySelectorAll('.quiz-step').forEach(step => {
+        step.classList.remove('active');
+    });
+    
+    // Show target step
+    const targetStep = document.getElementById(`step${stepNumber}`);
+    if (targetStep) {
+        targetStep.classList.add('active');
+        currentStep = stepNumber;
+        updateProgress();
+        updateBackButton();
+        restoreSelectedOption();
+    } else {
+        console.error('❌ Step not found:', stepNumber);
+    }
+}
+
+// Add this debug function to test the modal
+function debugModal() {
+    console.log('🔍 Debug: Modal Elements');
+    console.log('- Twin Modal:', document.getElementById('twinModal'));
+    console.log('- Step 0:', document.getElementById('step0'));
+    console.log('- Name Input:', document.getElementById('twinName'));
+    console.log('- Continue Button:', document.querySelector('.btn-continue'));
+    console.log('- Hero CTA:', document.querySelector('.hero-cta'));
+    console.log('- openTwinWizard function:', typeof openTwinWizard);
+}
+
+// Make it available globally for testing
+window.debugModal = debugModal;
+window.openTwinWizard = openTwinWizard;
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Name input validation

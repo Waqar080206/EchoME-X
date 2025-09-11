@@ -475,10 +475,49 @@
         </div>
     </div>
 
-    <!-- Load navbar first -->
+    <!-- Load scripts in correct order -->
     <script src="sidebar.js"></script>
     <script src="utils.js"></script>
-    <script src="js/api.js"></script>
     <script src="index.js"></script>
+
+    <!-- Add this script to ensure everything is loaded -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 DOM loaded, initializing quiz...');
+        
+        // Test if openTwinWizard is available
+        if (typeof openTwinWizard === 'function') {
+            console.log('✅ openTwinWizard function available');
+        } else {
+            console.error('❌ openTwinWizard function not found');
+        }
+        
+        // Test modal elements
+        const modal = document.getElementById('twinModal');
+        const step0 = document.getElementById('step0');
+        const nameInput = document.getElementById('twinName');
+        
+        console.log('Modal elements check:', {
+            modal: !!modal,
+            step0: !!step0,
+            nameInput: !!nameInput
+        });
+        
+        // Add click listeners to buttons if they don't have onclick
+        const heroCTA = document.querySelector('.hero-cta');
+        const finalCTA = document.querySelector('.final-cta-button');
+        
+        if (heroCTA && !heroCTA.onclick) {
+            heroCTA.addEventListener('click', openTwinWizard);
+            console.log('✅ Added click listener to hero CTA');
+        }
+        
+        if (finalCTA && !finalCTA.onclick) {
+            finalCTA.addEventListener('click', openTwinWizard);
+            console.log('✅ Added click listener to final CTA');
+        }
+    });
+    </script>
 </body>
 </html>
+``` 
