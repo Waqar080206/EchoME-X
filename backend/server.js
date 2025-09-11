@@ -15,7 +15,15 @@ console.log(`🌍 Environment: ${isProduction ? 'Production' : 'Development'}`);
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'https://echo-me-x.vercel.app',
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5500',
+    'https://your-vercel-app-name.vercel.app', // Replace with your actual Vercel URL
+    'https://echo-me-x.vercel.app' // If this is your domain
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -50,11 +58,12 @@ app.get('/', (req, res) => {
   });
 });
 
+// Add health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
-    status: 'ok', 
-    environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString() 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 

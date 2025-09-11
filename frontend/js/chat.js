@@ -477,106 +477,50 @@ function setupChatHandlers() {
 }
 
 // Update the sendMessage function around line 512
+const API_BASE_URL = 'https://your-render-app-name.onrender.com'; // Your Render backend URL
+
 async function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const message = messageInput.value.trim();
     
-    console.log('📤 sendMessage called:', { message, currentTwin });
-    
-    if (!message) {
-        console.log('❌ No message to send');
-        return;
-    }
-    
-    if (!currentTwin) {
-        console.log('❌ No current twin');
-        alert('No AI twin found. Please create one first.');
-        return;
-    }
-    
-    // Hide welcome state when first message is sent
-    hideWelcomeState();
+    if (!message) return;
     
     // Add user message to chat
-    addMessage('user', message);
+    addMessageToChat(message, 'user');
     messageInput.value = '';
-    
-    // Reset textarea height and button state
-    messageInput.style.height = 'auto';
-    document.getElementById('sendButton').disabled = true;
     
     // Show typing indicator
     showTypingIndicator();
     
     try {
-        console.log('🌐 Sending to backend:', currentTwin._id);
-        
-        // Determine which endpoint to use
-        const personalityProfile = localStorage.getItem('personalityProfile');
-        let endpoint, requestBody;
-        
-        console.log('🔍 Endpoint selection debug:');
-        console.log('- personalityProfile exists:', !!personalityProfile);
-        console.log('- currentTwin.hasPersonality:', currentTwin.hasPersonality);
-        console.log('- currentTwin._id:', currentTwin._id);
-        
-        // Always use personality chat if twin has an ID (since it was created via personality quiz)
-        if (currentTwin._id && currentTwin._id.length > 10) {
-            endpoint = '/api/chat-with-personality'; // ✅ Fixed endpoint name
-            requestBody = {
-                message: message,
-                twinId: currentTwin._id
-            };
-            console.log('🧠 Using personality chat endpoint (corrected)');
-        } else {
-            endpoint = '/api/chat';
-            requestBody = {
-                message: message,
-                twinName: currentTwin.name
-            };
-            console.log('💭 Using basic chat endpoint (fallback)');
-        }
-        
-        const response = await fetch(endpoint, {
+        const response = await fetch(`${API_BASE_URL}/api/chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify({ 
+                message: message,
+                conversationId: getCurrentConversationId() // If you have conversation tracking
+            })
         });
         
-        console.log('📡 Response status:', response.status);
-        
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`Server responded with status: ${response.status}`);
         }
         
-        const result = await response.json();
-        console.log('📬 Received response:', result);
+        const data = await response.json();
         
-        if (result.success) {
-            hideTypingIndicator();
-            // Handle different response formats
-            let responseText;
-            if (result.response) {
-                responseText = result.response; // For personality chat
-            } else if (result.data && result.data.message) {
-                responseText = result.data.message; // For basic chat
-            } else {
-                responseText = 'Sorry, I received an empty response.';
-            }
-            addMessage('assistant', responseText);
-        } else {
-            throw new Error(result.error || 'Failed to get response');
-        }
+        // Remove typing indicator
+        hideTypingIndicator();
+        
+        // Add AI response to chat
+        addMessageToChat(data.response, 'ai');
         
     } catch (error) {
-        console.error('❌ Chat error:', error);
+        console.error('Chat error:', error);
         hideTypingIndicator();
-        addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+        addMessageToChat('Sorry, I encountered an error. Please try again.', 'ai');
     }
-    
-    scrollToBottom();
 }
 
 // ========== UI HELPER FUNCTIONS ==========
