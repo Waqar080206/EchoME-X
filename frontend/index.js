@@ -1,34 +1,76 @@
 let currentStep = 0;
-const totalSteps = 13; // 1 name + 1 gender + 10 questions + 1 permissions
+const totalSteps = 13;
 const answers = {};
 
 const API_BASE_URL = 'https://echome-x.onrender.com';
 
 function openTwinWizard() {
-    document.getElementById('twinModal').classList.add('active');
+    console.log('🚀 Opening twin wizard');
+    
+    const modal = document.getElementById('twinModal');
+    if (!modal) {
+        console.error('❌ Modal not found');
+        return;
+    }
+    
+    // Show modal
+    modal.classList.add('active');
     document.body.style.overflow = 'hidden';
+    
+    // Reset quiz state
+    resetQuiz();
+    
+    // Show first step
+    document.querySelectorAll('.quiz-step').forEach(step => {
+        step.classList.remove('active');
+    });
+    
+    const firstStep = document.getElementById('step0');
+    if (firstStep) {
+        firstStep.classList.add('active');
+        console.log('✅ First step activated');
+    }
+    
+    // Update progress
     updateProgress();
+    updateBackButton();
+    
+    // Focus on name input after a short delay
+    setTimeout(() => {
+        const nameInput = document.getElementById('twinName');
+        if (nameInput) {
+            nameInput.focus();
+        }
+    }, 300);
 }
 
 function closeTwinWizard() {
-    document.getElementById('twinModal').classList.remove('active');
+    console.log('🔒 Closing twin wizard');
+    const modal = document.getElementById('twinModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
     document.body.style.overflow = '';
     resetQuiz();
 }
 
 function resetQuiz() {
+    console.log('🔄 Resetting quiz');
     currentStep = 0;
+    
+    // Clear answers
     Object.keys(answers).forEach(key => delete answers[key]);
     
-    // Reset all steps
-    document.querySelectorAll('.quiz-step').forEach(step => {
-        step.classList.remove('active', 'slide-out-left', 'slide-in-right', 'slide-out-right', 'slide-in-left');
-    });
-    document.getElementById('step0').classList.add('active');
-    
     // Reset form inputs
-    document.getElementById('twinName').value = '';
-    document.querySelector('.btn-continue').disabled = true;
+    const nameInput = document.getElementById('twinName');
+    if (nameInput) {
+        nameInput.value = '';
+    }
+    
+    const continueBtn = document.querySelector('.btn-continue');
+    if (continueBtn) {
+        continueBtn.disabled = true;
+    }
     
     // Reset all option buttons
     document.querySelectorAll('.option-btn').forEach(btn => {
@@ -40,285 +82,234 @@ function resetQuiz() {
         checkbox.checked = false;
     });
     
-    updateProgress();
-    updateBackButton();
+    // Show progress bar
+    const progressContainer = document.querySelector('.progress-container');
+    if (progressContainer) {
+        progressContainer.style.display = 'block';
+    }
 }
 
 function updateProgress() {
-    const progress = (currentStep / (totalSteps - 2)) * 100; // Exclude loading step and permissions
-    document.getElementById('progressFill').style.width = `${progress}%`;
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
     
-    if (currentStep === 0) {
-        document.getElementById('progressText').textContent = 'Getting Started';
-    } else if (currentStep === 1) {
-        document.getElementById('progressText').textContent = 'Basic Information';
-    } else if (currentStep <= 11) {
-        document.getElementById('progressText').textContent = `Question ${currentStep - 1} of 10`;
-    } else if (currentStep === 12) {
-        document.getElementById('progressText').textContent = 'Permissions';
+    if (progressFill && progressText) {
+        const progress = (currentStep / (totalSteps - 1)) * 100;
+        progressFill.style.width = `${progress}%`;
+        
+        if (currentStep === 0) {
+            progressText.textContent = 'Getting Started';
+        } else if (currentStep === 12) {
+            progressText.textContent = 'Almost Done!';
+        } else {
+            progressText.textContent = `Question ${currentStep} of 11`;
+        }
     }
 }
-
-// Replace the existing updateBackButton function
 
 function updateBackButton() {
-    console.log('Updating back button for step:', currentStep);
+    const stepButtons = document.querySelectorAll('.step-buttons');
     
-    // Remove existing back buttons (except permissions back button)
-    const existingBackButtons = document.querySelectorAll('.btn-back:not(.permissions-back-btn)');
-    existingBackButtons.forEach(btn => btn.remove());
-    
-    // Handle permissions step back button
-    const permissionsBackBtn = document.getElementById('permissionsBackBtn');
-    if (permissionsBackBtn) {
-        if (currentStep === 12) {
-            permissionsBackBtn.style.display = 'flex';
-            console.log('Showing permissions back button');
-        } else {
-            permissionsBackBtn.style.display = 'none';
+    stepButtons.forEach(buttonContainer => {
+        const existingBackBtn = buttonContainer.querySelector('.btn-back');
+        if (existingBackBtn) {
+            existingBackBtn.remove();
         }
-    }
-    
-    // Add back button starting from step 2 (Gender question = step 1, first personality question = step 2)
-    // Show back button for steps 2-11 (personality questions) and step 1 (gender)
-    if (currentStep >= 1 && currentStep <= 11) {
-        const currentStepEl = document.getElementById(`step${currentStep}`);
-        const stepButtons = currentStepEl?.querySelector('.step-buttons');
         
-        if (stepButtons && !stepButtons.querySelector('.btn-back')) {
-            console.log('Adding back button to step:', currentStep);
-            
+        if (currentStep > 0) {
             const backButton = document.createElement('button');
             backButton.className = 'btn-back';
+            backButton.textContent = 'Back';
             backButton.onclick = previousQuestion;
-            backButton.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5m7-7l-7 7 7 7"/>
-                </svg>
-                Back
-            `;
-            stepButtons.insertBefore(backButton, stepButtons.firstChild);
+            
+            buttonContainer.insertBefore(backButton, buttonContainer.firstChild);
         }
-    }
-    
-    // Ensure modal content is scrolled to top when changing steps
-    const modalContent = document.querySelector('.modal-content');
-    if (modalContent) {
-        modalContent.scrollTop = 0;
-    }
+    });
 }
-
-// Add this temporary debug function to test back button creation
-
-function debugBackButton() {
-    console.log('=== DEBUG BACK BUTTON ===');
-    console.log('Current step:', currentStep);
-    console.log('Should show back button:', currentStep >= 1 && currentStep <= 11);
-    
-    const currentStepEl = document.getElementById(`step${currentStep}`);
-    console.log('Current step element:', currentStepEl);
-    
-    if (currentStepEl) {
-        const stepButtons = currentStepEl.querySelector('.step-buttons');
-        console.log('Step buttons container:', stepButtons);
-        
-        if (stepButtons) {
-            const existingBackBtn = stepButtons.querySelector('.btn-back');
-            console.log('Existing back button:', existingBackBtn);
-        }
-    }
-    console.log('=========================');
-}
-
-// Replace the existing nextQuestion function
 
 function nextQuestion() {
-    console.log('Next question called, current step:', currentStep);
+    console.log('➡️ Next question from step:', currentStep);
     
     if (currentStep === 0) {
-        // Validate name input
-        const name = document.getElementById('twinName').value.trim();
+        const nameInput = document.getElementById('twinName');
+        const name = nameInput.value.trim();
+        
         if (!name) {
-            console.log('No name provided');
+            alert('Please enter your name');
             return;
         }
+        
         answers.name = name;
-        console.log('Name saved:', name);
+        console.log('📝 Saved name:', name);
     }
     
     if (currentStep < totalSteps - 1) {
-        // Slide out current step
-        const currentStepEl = document.getElementById(`step${currentStep}`);
-        console.log('Current step element:', currentStepEl);
+        // Hide current step
+        document.getElementById(`step${currentStep}`).classList.remove('active');
         
-        if (currentStepEl) {
-            currentStepEl.classList.add('slide-out-left');
-            
-            setTimeout(() => {
-                currentStepEl.classList.remove('active', 'slide-out-left');
-                currentStep++;
-                console.log('Moving to step:', currentStep);
-                
-                // Slide in next step
-                const nextStepEl = document.getElementById(`step${currentStep}`);
-                console.log('Next step element:', nextStepEl);
-                
-                if (nextStepEl) {
-                    nextStepEl.classList.add('active', 'slide-in-right');
-                    
-                    setTimeout(() => {
-                        nextStepEl.classList.remove('slide-in-right');
-                    }, 300);
-                }
-                
-                updateProgress();
-                updateBackButton();
-                restoreSelectedOption();
-                debugBackButton();
-            }, 300);
-        }
+        // Show next step
+        currentStep++;
+        document.getElementById(`step${currentStep}`).classList.add('active');
+        
+        updateProgress();
+        updateBackButton();
+        
+        console.log('✅ Moved to step:', currentStep);
     }
 }
-
-// Replace the existing previousQuestion function
 
 function previousQuestion() {
-    if (currentStep > 0) {
-        console.log('Going back from step:', currentStep);
-        
-        // Slide out current step to the right
-        const currentStepEl = document.getElementById(`step${currentStep}`);
-        currentStepEl.classList.add('slide-out-right');
-        
-        setTimeout(() => {
-            currentStepEl.classList.remove('active', 'slide-out-right');
-            currentStep--;
-            console.log('Now on step:', currentStep);
-            
-            // Slide in previous step from the left
-            const prevStepEl = document.getElementById(`step${currentStep}`);
-            prevStepEl.classList.add('active', 'slide-in-left');
-            
-            setTimeout(() => {
-                prevStepEl.classList.remove('slide-in-left');
-            }, 300);
-            
-            updateProgress();
-            updateBackButton();
-            restoreSelectedOption();
-            
-            // For name step (step 0), restore continue button state
-            if (currentStep === 0) {
-                const nameInput = document.getElementById('twinName');
-                const continueBtn = document.querySelector('.btn-continue');
-                if (nameInput && continueBtn) {
-                    const hasName = nameInput.value.trim().length > 0;
-                    continueBtn.disabled = !hasName;
-                }
-            }
-        }, 300);
-    }
-}
-
-function restoreSelectedOption() {
-    // Restore previously selected option when going back
-    const currentStepEl = document.getElementById(`step${currentStep}`);
+    console.log('⬅️ Previous question from step:', currentStep);
     
-    if (currentStep === 1) {
-        // Gender question
-        if (answers.gender) {
-            const genderOption = currentStepEl.querySelector(`[data-value="${answers.gender}"]`);
-            if (genderOption) {
-                genderOption.classList.add('selected');
-            }
-        }
-    } else if (currentStep >= 2 && currentStep <= 11) {
-        // Personality questions
-        const questionKey = `q${currentStep - 1}`;
-        if (answers[questionKey]) {
-            const selectedOption = currentStepEl.querySelector(`[data-value="${answers[questionKey]}"]`);
-            if (selectedOption) {
-                selectedOption.classList.add('selected');
-            }
-        }
-    } else if (currentStep === 12) {
-        // Social media permissions
-        if (answers.socialMediaPermissions && typeof answers.socialMediaPermissions === 'object') {
-            Object.keys(answers.socialMediaPermissions).forEach(platform => {
-                const checkbox = document.getElementById(`${platform}Permission`);
-                if (checkbox) {
-                    checkbox.checked = answers.socialMediaPermissions[platform];
-                }
-            });
-        }
+    if (currentStep > 0) {
+        // Hide current step
+        document.getElementById(`step${currentStep}`).classList.remove('active');
+        
+        // Show previous step
+        currentStep--;
+        document.getElementById(`step${currentStep}`).classList.add('active');
+        
+        updateProgress();
+        updateBackButton();
+        restoreSelectedOption();
+        
+        console.log('✅ Moved back to step:', currentStep);
     }
 }
 
 function selectOption(button) {
-    const step = button.closest('.quiz-step');
-    const questionNumber = step.id.replace('step', '');
+    console.log('🎯 Option selected:', button.dataset.value);
     
-    // Remove selection from other options in this step
-    step.querySelectorAll('.option-btn').forEach(btn => {
-        btn.classList.remove('selected');
-    });
+    // Remove selected class from all buttons in this step
+    const currentStepElement = document.getElementById(`step${currentStep}`);
+    const allButtons = currentStepElement.querySelectorAll('.option-btn');
+    allButtons.forEach(btn => btn.classList.remove('selected'));
     
-    // Select this option
+    // Add selected class to clicked button
     button.classList.add('selected');
     
-    // Store answer
-    if (questionNumber === '1') {
-        answers.gender = button.dataset.value;
-    } else {
-        answers[`q${questionNumber - 1}`] = button.dataset.value;
-    }
+    // Store the answer
+    const questionKey = `question${currentStep}`;
+    answers[questionKey] = button.dataset.value;
     
-    // Auto-advance after a brief delay
+    console.log('📝 Saved answer:', questionKey, '=', button.dataset.value);
+    
+    // Auto-advance after short delay
     setTimeout(() => {
-        if (currentStep === 11) {
-            // Last personality question - go to permissions
-            nextQuestion();
-        } else {
-            nextQuestion();
+        nextQuestion();
+    }, 500);
+}
+
+function restoreSelectedOption() {
+    const questionKey = `question${currentStep}`;
+    const savedAnswer = answers[questionKey];
+    
+    if (savedAnswer) {
+        const currentStepElement = document.getElementById(`step${currentStep}`);
+        const selectedButton = currentStepElement.querySelector(`[data-value="${savedAnswer}"]`);
+        if (selectedButton) {
+            selectedButton.classList.add('selected');
         }
-    }, 800);
+    }
 }
 
 function skipSocialMedia() {
-    answers.socialMediaPermissions = 'skipped';
-    createTwin();
+    console.log('⏭️ Skipping social media permissions');
+    answers.socialMedia = {};
+    finishQuiz();
 }
 
 function acceptPermissions() {
-    // Collect all quiz data
-    const twinData = collectQuizData();
+    console.log('✅ Accepting social media permissions');
     
-    // Create the twin with the collected data
+    const permissions = {};
+    document.querySelectorAll('.social-checkbox').forEach(checkbox => {
+        permissions[checkbox.id] = checkbox.checked;
+    });
+    
+    answers.socialMedia = permissions;
+    finishQuiz();
+}
+
+function finishQuiz() {
+    console.log('🏁 Finishing quiz with answers:', answers);
+    
+    // Hide current step
+    document.getElementById(`step${currentStep}`).classList.remove('active');
+    
+    // Show loading step
+    showLoadingStep();
+    
+    // Collect and send data
+    const twinData = collectQuizData();
     createTwin(twinData);
 }
 
-// Function to collect quiz data - FIXED VERSION
-function collectQuizData() {
-    console.log('Collecting quiz data from answers object:', answers);
+function showLoadingStep() {
+    // Hide all steps
+    document.querySelectorAll('.quiz-step').forEach(step => {
+        step.classList.remove('active');
+    });
     
-    // Use the global answers object that's populated during the quiz
-    const personalityData = buildPersonalityData(answers);
+    // Show or create loading step
+    let loadingStep = document.getElementById('loadingStep');
+    if (!loadingStep) {
+        loadingStep = document.createElement('div');
+        loadingStep.className = 'quiz-step';
+        loadingStep.id = 'loadingStep';
+        loadingStep.innerHTML = `
+            <div class="question-container" style="text-align: center;">
+                <div class="loading-animation">
+                    <div class="loading-spinner"></div>
+                </div>
+                <h2 class="question-title">Creating Your AI Twin</h2>
+                <p class="question-subtitle">This may take a few moments...</p>
+                <div class="loading-progress">
+                    <div class="loading-bar" id="loadingBar"></div>
+                </div>
+            </div>
+        `;
+        document.querySelector('.modal-content').appendChild(loadingStep);
+    }
     
-    console.log('Built personality data:', personalityData);
+    loadingStep.classList.add('active');
     
-    return personalityData;
+    // Animate loading bar
+    const loadingBar = document.getElementById('loadingBar');
+    if (loadingBar) {
+        loadingBar.style.width = '0%';
+        setTimeout(() => {
+            loadingBar.style.width = '90%';
+        }, 500);
+    }
 }
 
-// Replace the existing createTwin function
+function collectQuizData() {
+    const data = {
+        name: answers.name,
+        personality: {
+            gender: answers.question1,
+            communication: answers.question2,
+            social: answers.question3,
+            planning: answers.question4,
+            stress: answers.question5,
+            learning: answers.question6,
+            energy: answers.question7,
+            decisions: answers.question8,
+            emotions: answers.question9,
+            change: answers.question10,
+            outlook: answers.question11
+        },
+        socialMedia: answers.socialMedia || {}
+    };
+    
+    console.log('📊 Collected twin data:', data);
+    return data;
+}
+
 async function createTwin(twinData) {
     try {
-        console.log('Creating personality twin with data:', twinData);
-        
-        // If twinData is undefined, collect it
-        if (!twinData) {
-            twinData = collectQuizData();
-            console.log('Collected quiz data:', twinData);
-        }
+        console.log('🚀 Creating twin with data:', twinData);
         
         const response = await fetch(`${API_BASE_URL}/api/create-personality-twin`, {
             method: 'POST',
@@ -329,84 +320,51 @@ async function createTwin(twinData) {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
         }
 
         const result = await response.json();
         console.log('✅ Twin creation successful:', result);
         
-        // Store the twin data
-        localStorage.setItem('currentTwin', JSON.stringify(result.twin));
-        
-        // Show success and redirect
-        showTwinCreationSuccess(result);
+        if (result.success) {
+            // Complete loading animation
+            const loadingBar = document.getElementById('loadingBar');
+            if (loadingBar) {
+                loadingBar.style.width = '100%';
+            }
+            
+            // Show success after delay
+            setTimeout(() => {
+                showFinalSuccess(result);
+            }, 1500);
+        } else {
+            throw new Error(result.error || 'Twin creation failed');
+        }
         
         return result;
         
     } catch (error) {
-        console.error('❌ Error creating personality twin:', error);
-        throw error;
+        console.error('❌ Error creating twin:', error);
+        
+        // Hide loading step
+        const loadingStep = document.getElementById('loadingStep');
+        if (loadingStep) {
+            loadingStep.classList.remove('active');
+        }
+        
+        alert(`Error creating your twin: ${error.message}\n\nPlease try again.`);
+        
+        // Go back to permissions step
+        currentStep = 12;
+        document.getElementById('step12').classList.add('active');
     }
 }
 
-// Replace the showTwinCreationSuccess function around line 450
-function showTwinCreationSuccess(result) {
-    console.log('🎉 Twin creation successful:', result);
-    
-    // Ensure we have the proper MongoDB ID
-    if (!result.twinId) {
-        console.error('❌ No twinId received from backend:', result);
-        alert('Twin created but no ID received. Please try again.');
-        return;
-    }
-    
-    console.log('📝 Backend returned twinId:', result.twinId);
-    console.log('📝 TwinId type:', typeof result.twinId);
-    console.log('📝 TwinId length:', result.twinId.length);
-    
-    // Validate that it looks like a MongoDB ObjectId (24 hex characters)
-    const mongoIdPattern = /^[0-9a-fA-F]{24}$/;
-    if (!mongoIdPattern.test(result.twinId)) {
-        console.error('❌ Invalid MongoDB ObjectId format:', result.twinId);
-        alert('Invalid twin ID format received. Please try again.');
-        return;
-    }
-    
-    console.log('✅ Valid MongoDB ObjectId received');
-    
-    // Store the twin data with the proper MongoDB ID
-    const twinData = {
-        id: result.twinId, // MongoDB ObjectId as string
-        _id: result.twinId, // Also store as _id for compatibility
-        name: answers.name || result.twin?.name || 'Your Twin',
-        status: 'active',
-        personality: result.twin?.personality || answers,
-        hasPersonality: true,
-        created: new Date().toISOString()
-    };
-    
-    console.log('💾 Storing twin data:', twinData);
-    
-    // Store current twin data
-    localStorage.setItem('currentTwin', JSON.stringify(twinData));
-    localStorage.setItem('twinId', twinData.id);
-    localStorage.setItem('twinName', twinData.name);
-    localStorage.setItem('personalityProfile', JSON.stringify(twinData.personality));
-    
-    // Add to twins list for sidebar
-    addTwinToList(twinData);
-    
-    console.log('✅ Twin data stored successfully with MongoDB ID:', twinData.id);
-    
-    // Show final success
-    showFinalSuccess(result);
-}
-
-// Replace the showFinalSuccess function
 function showFinalSuccess(result) {
-    console.log('🎉 Showing final success with result:', result);
+    console.log('🎉 Showing success:', result);
     
-    // Hide ALL existing steps
+    // Hide all steps
     document.querySelectorAll('.quiz-step').forEach(step => {
         step.classList.remove('active');
         step.style.display = 'none';
@@ -418,21 +376,19 @@ function showFinalSuccess(result) {
         progressContainer.style.display = 'none';
     }
     
-    // Create or get success step
+    // Create success step
     let successStep = document.getElementById('successStep');
     if (!successStep) {
         successStep = document.createElement('div');
         successStep.className = 'quiz-step';
         successStep.id = 'successStep';
-        
-        const modalContent = document.querySelector('.modal-content');
-        modalContent.appendChild(successStep);
+        document.querySelector('.modal-content').appendChild(successStep);
     }
     
     const twinName = result.twin?.name || result.name || answers.name || 'Your Twin';
     
     successStep.innerHTML = `
-        <div style="text-align: center; padding: 3rem 2rem; position: relative; z-index: 1000;">
+        <div style="text-align: center; padding: 3rem 2rem;">
             <div style="font-size: 4rem; margin-bottom: 1.5rem;">🎉</div>
             <h2 style="color: #8B5CF6; margin-bottom: 1rem; font-size: 2rem;">
                 Congratulations!
@@ -451,7 +407,6 @@ function showFinalSuccess(result) {
                 font-weight: 600;
                 font-size: 1.1rem;
                 cursor: pointer;
-                transition: all 0.3s ease;
                 display: inline-flex;
                 align-items: center;
                 gap: 10px;
@@ -464,11 +419,10 @@ function showFinalSuccess(result) {
         </div>
     `;
     
-    // Show success step
     successStep.style.display = 'block';
     successStep.classList.add('active');
     
-    // Store complete twin data
+    // Store twin data
     const twinData = {
         id: result.twinId || result.twin?._id,
         _id: result.twinId || result.twin?._id,
@@ -477,7 +431,6 @@ function showFinalSuccess(result) {
         personality: result.twin?.personality || result.personality
     };
     
-    console.log('💾 Storing twin data:', twinData);
     localStorage.setItem('currentTwin', JSON.stringify(twinData));
     localStorage.setItem('twinId', twinData.id);
     localStorage.setItem('twinName', twinData.name);
@@ -494,221 +447,20 @@ function goToChat() {
         return;
     }
     
-    // Close modal and navigate
     closeTwinWizard();
     setTimeout(() => {
         window.location.href = 'chat.html';
     }, 300);
 }
 
-// Add function to manage twins list
-function addTwinToList(twinData) {
-    let twins = [];
-    try {
-        const existingTwins = localStorage.getItem('userTwins');
-        if (existingTwins) {
-            twins = JSON.parse(existingTwins);
-        }
-    } catch (error) {
-        console.error('Error parsing existing twins:', error);
-        twins = [];
-    }
-    
-    // Check if twin already exists (avoid duplicates)
-    const existingIndex = twins.findIndex(twin => twin.id === twinData.id);
-    if (existingIndex > -1) {
-        // Update existing twin
-        twins[existingIndex] = twinData;
-    } else {
-        // Add new twin
-        twins.push(twinData);
-    }
-    
-    // Store updated twins list
-    localStorage.setItem('userTwins', JSON.stringify(twins));
-    
-    console.log('Twin added to list. Total twins:', twins.length);
-}
-
-// Update the animateLoading function to be more realistic
-function animateLoading() {
-    const loadingBar = document.getElementById('loadingBar');
-    let progress = 0;
-    
-    const interval = setInterval(() => {
-        progress += Math.random() * 10 + 5; // Faster progress
-        if (progress > 100) progress = 100;
-        
-        loadingBar.style.width = `${progress}%`;
-        
-        if (progress >= 100) {
-            clearInterval(interval);
-        }
-    }, 150);
-}
-
-// Navigation functions
-function goToAnalytics() {
-    window.location.href = 'analytics.html';
-}
-
-function createNewTwin() {
-    // Reset the quiz
-    currentStep = 0;
-    answers = {};
-    
-    // Hide success step
-    const successStep = document.getElementById('successStep');
-    if (successStep) {
-        successStep.classList.remove('active');
-    }
-    
-    // Show first step
-    showQuestion(0);
-    
-    // Show progress bar again
-    const progressContainer = document.querySelector('.progress-container');
-    if (progressContainer) {
-        progressContainer.style.display = 'block';
-    }
-}
-
-// Update the buildPersonalityData function around line 476
-function buildPersonalityData(answers) {
-    console.log('Building personality data from answers:', answers);
-    
-    // Validate we have required data
-    if (!answers.name) {
-        console.error('Missing name in answers');
-        return null;
-    }
-    
-    // Map quiz answers to personality traits
-    const traits = {
-        extraversion: answers.q1 === 'extraverted' ? 0.8 : 0.2,
-        openness: answers.q2 === 'open' ? 0.8 : 0.2,
-        conscientiousness: answers.q3 === 'organized' ? 0.8 : 0.2,
-        agreeableness: answers.q4 === 'agreeable' ? 0.8 : 0.2,
-        neuroticism: answers.q5 === 'sensitive' ? 0.8 : 0.2,
-        optimism: answers.q6 === 'optimistic' ? 0.8 : 0.2,
-        thinking_style: answers.q7 === 'practical' ? 'practical' : 'creative',
-        decision_style: answers.q8 === 'emotional' ? 'emotional' : 'logical',
-        planning_style: answers.q9 === 'decisive' ? 'decisive' : 'flexible',
-        worldview: answers.q10 === 'positive' ? 'optimistic' : 'realistic'
-    };
-
-    // Build comprehensive personality profile with the quiz name
-    const personalityProfile = {
-        name: answers.name, // This is the name from the first question
-        gender: answers.gender,
-        bigFiveTraits: {
-            extraversion: traits.extraversion,
-            openness: traits.openness,
-            conscientiousness: traits.conscientiousness,
-            agreeableness: traits.agreeableness,
-            neuroticism: traits.neuroticism
-        },
-        communicationStyle: {
-            formality: traits.conscientiousness > 0.5 ? 'formal' : 'casual',
-            expressiveness: traits.extraversion > 0.5 ? 'expressive' : 'reserved',
-            supportiveness: traits.agreeableness > 0.5 ? 'supportive' : 'direct',
-            optimism: traits.optimism
-        },
-        cognitiveStyle: {
-            thinking_preference: traits.thinking_style,
-            decision_making: traits.decision_style,
-            planning_approach: traits.planning_style,
-            creativity_level: traits.openness
-        },
-        socialMediaPermissions: answers.socialMediaPermissions || 'skipped',
-        createdAt: new Date().toISOString(),
-        responses: answers // Include all raw answers
-    };
-
-    return personalityProfile;
-}
-
-function showQuestion(stepNumber) {
-    console.log('📋 Showing question step:', stepNumber);
-    
-    // Hide all steps
-    document.querySelectorAll('.quiz-step').forEach(step => {
-        step.classList.remove('active');
-    });
-    
-    // Show target step
-    const targetStep = document.getElementById(`step${stepNumber}`);
-    if (targetStep) {
-        targetStep.classList.add('active');
-        currentStep = stepNumber;
-        updateProgress();
-        updateBackButton();
-        restoreSelectedOption();
-    } else {
-        console.error('❌ Step not found:', stepNumber);
-    }
-}
-
-// Add this debug function to test the modal
-function debugModal() {
-    console.log('🔍 Debug: Modal Elements');
-    console.log('- Twin Modal:', document.getElementById('twinModal'));
-    console.log('- Step 0:', document.getElementById('step0'));
-    console.log('- Name Input:', document.getElementById('twinName'));
-    console.log('- Continue Button:', document.querySelector('.btn-continue'));
-    console.log('- Hero CTA:', document.querySelector('.hero-cta'));
-    console.log('- openTwinWizard function:', typeof openTwinWizard);
-}
-
-// Make it available globally for testing
-window.debugModal = debugModal;
+// Make functions available globally immediately
 window.openTwinWizard = openTwinWizard;
+window.closeTwinWizard = closeTwinWizard;
+window.nextQuestion = nextQuestion;
+window.previousQuestion = previousQuestion;
+window.selectOption = selectOption;
+window.skipSocialMedia = skipSocialMedia;
+window.acceptPermissions = acceptPermissions;
+window.goToChat = goToChat;
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Name input validation
-    const nameInput = document.getElementById('twinName');
-    const continueBtn = document.querySelector('.btn-continue');
-    
-    if (nameInput && continueBtn) {
-        nameInput.addEventListener('input', function() {
-            const hasName = this.value.trim().length > 0;
-            continueBtn.disabled = !hasName;
-        });
-
-        // Enter key support for name input
-        nameInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !continueBtn.disabled) {
-                nextQuestion();
-            }
-        });
-    }
-
-    // Close modal on outside click
-    const twinModal = document.getElementById('twinModal');
-    if (twinModal) {
-        twinModal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeTwinWizard();
-            }
-        });
-    }
-
-    // Prevent modal close on content click
-    const modalContent = document.querySelector('.modal-content');
-    if (modalContent) {
-        modalContent.addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
-    }
-
-    // Initialize back button visibility
-    updateBackButton();
-    
-    // Also call updateBackButton whenever the modal opens
-    const originalOpenTwinWizard = openTwinWizard;
-    openTwinWizard = function() {
-        originalOpenTwinWizard();
-        setTimeout(updateBackButton, 100); // Small delay to ensure DOM is ready
-    };
-});
+console.log('✅ index.js loaded, functions available globally');

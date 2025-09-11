@@ -476,48 +476,77 @@
     </div>
 
     <!-- Load scripts in correct order -->
-    <script src="sidebar.js"></script>
     <script src="utils.js"></script>
     <script src="index.js"></script>
+    <script src="sidebar.js"></script>
 
-    <!-- Add this script to ensure everything is loaded -->
     <script>
+    // Ensure openTwinWizard is available immediately
+    window.openTwinWizard = function() {
+        console.log('🚀 Opening twin wizard (emergency fallback)');
+        const modal = document.getElementById('twinModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Reset and show first step
+            currentStep = 0;
+            document.querySelectorAll('.quiz-step').forEach(step => {
+                step.classList.remove('active');
+            });
+            const firstStep = document.getElementById('step0');
+            if (firstStep) {
+                firstStep.classList.add('active');
+            }
+            updateProgress();
+        }
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
         console.log('🚀 DOM loaded, initializing quiz...');
         
-        // Test if openTwinWizard is available
-        if (typeof openTwinWizard === 'function') {
-            console.log('✅ openTwinWizard function available');
-        } else {
-            console.error('❌ openTwinWizard function not found');
-        }
-        
-        // Test modal elements
-        const modal = document.getElementById('twinModal');
-        const step0 = document.getElementById('step0');
-        const nameInput = document.getElementById('twinName');
-        
-        console.log('Modal elements check:', {
-            modal: !!modal,
-            step0: !!step0,
-            nameInput: !!nameInput
+        // Test if functions are available
+        console.log('Functions check:', {
+            openTwinWizard: typeof openTwinWizard,
+            currentStep: typeof currentStep,
+            answers: typeof answers
         });
         
-        // Add click listeners to buttons if they don't have onclick
-        const heroCTA = document.querySelector('.hero-cta');
-        const finalCTA = document.querySelector('.final-cta-button');
+        // Initialize name input validation
+        const nameInput = document.getElementById('twinName');
+        const continueBtn = document.querySelector('.btn-continue');
         
-        if (heroCTA && !heroCTA.onclick) {
-            heroCTA.addEventListener('click', openTwinWizard);
-            console.log('✅ Added click listener to hero CTA');
+        if (nameInput && continueBtn) {
+            nameInput.addEventListener('input', function() {
+                const hasName = this.value.trim().length > 0;
+                continueBtn.disabled = !hasName;
+            });
+
+            nameInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !continueBtn.disabled) {
+                    nextQuestion();
+                }
+            });
         }
-        
-        if (finalCTA && !finalCTA.onclick) {
-            finalCTA.addEventListener('click', openTwinWizard);
-            console.log('✅ Added click listener to final CTA');
+
+        // Modal event handlers
+        const twinModal = document.getElementById('twinModal');
+        if (twinModal) {
+            twinModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeTwinWizard();
+                }
+            });
+        }
+
+        const modalContent = document.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
         }
     });
     </script>
 </body>
 </html>
-``` 
