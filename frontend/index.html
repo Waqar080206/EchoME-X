@@ -679,6 +679,148 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Emergency global functions - available immediately
+window.selectOption = function(button) {
+    console.log('🎯 Emergency selectOption called');
+    
+    if (!button || !button.dataset || !button.dataset.value) {
+        console.error('❌ Invalid button');
+        return;
+    }
+    
+    // Get current step from global or default to 1
+    const step = window.currentStep || 1;
+    
+    // Remove selection from all buttons in current step
+    const stepElement = document.getElementById(`step${step}`);
+    if (stepElement) {
+        stepElement.querySelectorAll('.option-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+    }
+    
+    // Select this button
+    button.classList.add('selected');
+    
+    // Store answer if answers object exists
+    if (window.answers) {
+        window.answers[`question${step}`] = button.dataset.value;
+    }
+    
+    console.log('📝 Emergency saved:', button.dataset.value);
+    
+    // Try to advance
+    setTimeout(() => {
+        if (typeof nextQuestion === 'function') {
+            nextQuestion();
+        } else {
+            console.log('🔄 nextQuestion not available, trying emergency advance');
+            emergencyAdvance();
+        }
+    }, 500);
+};
+
+window.previousQuestion = function() {
+    console.log('⬅️ Emergency previousQuestion called');
+    
+    const currentStep = window.currentStep || 1;
+    
+    if (currentStep > 0) {
+        // Hide current step
+        const current = document.getElementById(`step${currentStep}`);
+        if (current) current.classList.remove('active');
+        
+        // Show previous step
+        const prev = currentStep - 1;
+        const prevElement = document.getElementById(`step${prev}`);
+        if (prevElement) prevElement.classList.add('active');
+        
+        // Update global step
+        window.currentStep = prev;
+        
+        console.log('✅ Emergency moved back to step:', prev);
+    }
+};
+
+function emergencyAdvance() {
+    const currentStep = window.currentStep || 1;
+    const nextStep = currentStep + 1;
+    
+    // Hide current
+    const current = document.getElementById(`step${currentStep}`);
+    if (current) current.classList.remove('active');
+    
+    // Show next
+    const next = document.getElementById(`step${nextStep}`);
+    if (next) {
+        next.classList.add('active');
+        window.currentStep = nextStep;
+        console.log('🚀 Emergency advanced to step:', nextStep);
+    }
+}
+
+// Safe emergency version of openTwinWizard
+window.openTwinWizard = function() {
+    console.log('🚀 Emergency openTwinWizard called');
+    
+    const modal = document.getElementById('twinModal');
+    if (!modal) {
+        console.error('❌ Modal not found');
+        return;
+    }
+    
+    // Show modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
+    
+    // Reset to first step
+    document.querySelectorAll('.quiz-step').forEach((step, index) => {
+        if (index === 0) {
+            step.classList.add('active');
+        } else {
+            step.classList.remove('active');
+        }
+    });
+    
+    // Set initial progress
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    if (progressFill) progressFill.style.width = '0%';
+    if (progressText) progressText.textContent = 'Getting Started';
+    
+    // Initialize name input
+    setTimeout(() => {
+        const nameInput = document.getElementById('twinName');
+        const continueBtn = document.querySelector('.btn-continue, .continue-btn-modal, #continueButton');
+        
+        if (nameInput && continueBtn) {
+            nameInput.value = '';
+            continueBtn.disabled = true;
+            
+            nameInput.oninput = function() {
+                const hasName = this.value.trim().length > 0;
+                continueBtn.disabled = !hasName;
+                continueBtn.style.opacity = hasName ? '1' : '0.5';
+            };
+            
+            nameInput.focus();
+        }
+    }, 200);
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM loaded - emergency functions ready');
+    
+    // Ensure currentStep is set
+    window.currentStep = window.currentStep || 0;
+    
+    // Ensure answers object exists
+    window.answers = window.answers || {};
+    
+    console.log('✅ Emergency system initialized');
+});
 </script>
 </body>
 </html>

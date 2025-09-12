@@ -4,6 +4,76 @@ const answers = {};
 
 const API_BASE_URL = 'https://echome-x.onrender.com';
 
+// Make functions available IMMEDIATELY (before any other code)
+window.selectOption = function(button) {
+    console.log('🎯 Option selected (emergency):', button.dataset.value);
+    
+    // Remove selected class from all buttons in current step
+    const currentStepElement = document.getElementById(`step${currentStep}`);
+    if (currentStepElement) {
+        const allButtons = currentStepElement.querySelectorAll('.option-btn');
+        allButtons.forEach(btn => btn.classList.remove('selected'));
+    }
+    
+    // Add selected class to clicked button
+    button.classList.add('selected');
+    
+    // Store the answer
+    const questionKey = `question${currentStep}`;
+    answers[questionKey] = button.dataset.value;
+    
+    console.log('📝 Saved answer:', questionKey, '=', button.dataset.value);
+    
+    // Auto-advance after short delay
+    setTimeout(() => {
+        if (typeof nextQuestion === 'function') {
+            nextQuestion();
+        } else {
+            console.error('nextQuestion function not available');
+        }
+    }, 500);
+};
+
+window.previousQuestion = function() {
+    console.log('⬅️ Previous question (emergency)');
+    
+    if (currentStep > 0) {
+        // Hide current step
+        const currentStepElement = document.getElementById(`step${currentStep}`);
+        if (currentStepElement) {
+            currentStepElement.classList.remove('active');
+        }
+        
+        // Show previous step
+        currentStep--;
+        const prevStepElement = document.getElementById(`step${currentStep}`);
+        if (prevStepElement) {
+            prevStepElement.classList.add('active');
+        }
+        
+        // Update progress
+        if (typeof updateProgress === 'function') {
+            updateProgress();
+        }
+        
+        // Update back button
+        if (typeof updateBackButton === 'function') {
+            updateBackButton();
+        }
+        
+        // Re-initialize name input if going back to step 0
+        if (currentStep === 0) {
+            setTimeout(() => {
+                if (typeof initializeNameInputValidation === 'function') {
+                    initializeNameInputValidation();
+                }
+            }, 100);
+        }
+        
+        console.log('✅ Moved back to step:', currentStep);
+    }
+};
+
 // Define updateProgress function FIRST (before it's used)
 function updateProgress() {
     const progressFill = document.getElementById('progressFill');
@@ -25,21 +95,30 @@ function updateProgress() {
 
 // Define updateBackButton function
 function updateBackButton() {
+    console.log('🔙 Updating back button for step:', currentStep);
+    
     const stepButtons = document.querySelectorAll('.step-buttons');
     
     stepButtons.forEach(buttonContainer => {
+        // Remove existing back button
         const existingBackBtn = buttonContainer.querySelector('.btn-back');
         if (existingBackBtn) {
             existingBackBtn.remove();
         }
         
+        // Add back button if not on first step
         if (currentStep > 0) {
             const backButton = document.createElement('button');
             backButton.className = 'btn-back';
             backButton.textContent = 'Back';
-            backButton.onclick = previousQuestion;
+            backButton.onclick = function() {
+                console.log('Back button clicked');
+                previousQuestion();
+            };
             
+            // Insert at the beginning of the container
             buttonContainer.insertBefore(backButton, buttonContainer.firstChild);
+            console.log('✅ Back button added to step');
         }
     });
 }
@@ -270,10 +349,18 @@ function restoreSelectedOption() {
 function selectOption(button) {
     console.log('🎯 Option selected:', button.dataset.value);
     
+    if (!button || !button.dataset.value) {
+        console.error('❌ Invalid button or missing data-value');
+        return;
+    }
+    
     // Remove selected class from all buttons in this step
     const currentStepElement = document.getElementById(`step${currentStep}`);
-    const allButtons = currentStepElement.querySelectorAll('.option-btn');
-    allButtons.forEach(btn => btn.classList.remove('selected'));
+    if (currentStepElement) {
+        const allButtons = currentStepElement.querySelectorAll('.option-btn');
+        allButtons.forEach(btn => btn.classList.remove('selected'));
+        console.log('🧹 Cleared previous selections');
+    }
     
     // Add selected class to clicked button
     button.classList.add('selected');
@@ -283,6 +370,7 @@ function selectOption(button) {
     answers[questionKey] = button.dataset.value;
     
     console.log('📝 Saved answer:', questionKey, '=', button.dataset.value);
+    console.log('📊 Current answers:', answers);
     
     // Auto-advance after short delay
     setTimeout(() => {
