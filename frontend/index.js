@@ -464,3 +464,32 @@ window.acceptPermissions = acceptPermissions;
 window.goToChat = goToChat;
 
 console.log('✅ index.js loaded, functions available globally');
+
+// Debug CSS loading
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔍 CSS Debug - Checking loaded stylesheets:');
+    
+    const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
+    stylesheets.forEach((sheet, index) => {
+        console.log(`${index + 1}. ${sheet.href}`);
+        
+        // Check if CSS loaded successfully
+        if (sheet.sheet) {
+            console.log(`   ✅ Loaded: ${sheet.sheet.cssRules?.length || 0} rules`);
+        } else {
+            console.error(`   ❌ Failed to load: ${sheet.href}`);
+        }
+    });
+    
+    // Test modal styles
+    const modal = document.getElementById('twinModal');
+    if (modal) {
+        const styles = window.getComputedStyle(modal);
+        console.log('Modal styles:', {
+            display: styles.display,
+            position: styles.position,
+            zIndex: styles.zIndex,
+            background: styles.backgroundColor
+        });
+    }
+});

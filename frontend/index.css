@@ -55,6 +55,11 @@ body::before {
     z-index: -1;
 }
 
+/* Ensure modal styles work with existing styles */
+body.modal-open {
+    overflow: hidden !important;
+}
+
 /* Header Styles */
 .header {
     display: none;
@@ -150,6 +155,8 @@ body::before {
     min-height: 100vh;
     display: flex;
     align-items: center;
+    position: relative;
+    z-index: 1;
 }
 
 .hero-container {
@@ -214,6 +221,8 @@ body::before {
     text-decoration: none;
     font-family: var(--font-primary);
     box-shadow: 0 8px 32px rgba(124, 58, 237, 0.3);
+    position: relative;
+    z-index: 2;
 }
 
 .hero-cta:hover {
@@ -353,6 +362,8 @@ body::before {
     transition: all 0.3s ease;
     font-family: var(--font-primary);
     box-shadow: 0 8px 32px rgba(124, 58, 237, 0.3);
+    position: relative;
+    z-index: 2;
 }
 
 .final-cta-button:hover {
@@ -398,6 +409,16 @@ body::before {
     overflow-y: auto;
     position: relative;
     animation: modalSlideIn 0.3s ease;
+}
+
+/* Modal specific overrides for this page */
+#twinModal {
+    font-family: 'Inter', sans-serif !important;
+}
+
+#twinModal .modal-content {
+    background: #0a0a0a !important;
+    border: 1px solid rgba(139, 92, 246, 0.2) !important;
 }
 
 /* Progress Bar */
