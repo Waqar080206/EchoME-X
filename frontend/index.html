@@ -108,7 +108,9 @@
                     <input type="text" class="name-input" id="twinName" placeholder="Enter your name" maxlength="50">
                     <div class="step-buttons">
                         <button class="btn-cancel" onclick="closeTwinWizard()">Cancel</button>
-                        <button class="btn-continue" onclick="nextQuestion()" disabled>Continue</button>
+                        <button class="btn-continue" onclick="console.log('Continue clicked!'); nextQuestion()" disabled>
+                            Continue
+                        </button>
                     </div>
                 </div>
             </div>
@@ -501,8 +503,74 @@
                 firstStep.classList.add('active');
             }
             updateProgress();
+            
+            // Initialize the name input validation immediately
+            initializeNameInput();
         }
     };
+
+    function initializeNameInput() {
+        console.log('🔧 Initializing name input validation');
+        
+        const nameInput = document.getElementById('twinName');
+        const continueBtn = document.querySelector('.btn-continue');
+        
+        if (nameInput && continueBtn) {
+            // Remove any existing event listeners
+            nameInput.removeEventListener('input', handleNameInput);
+            nameInput.removeEventListener('keydown', handleNameKeydown);
+            
+            // Add fresh event listeners
+            nameInput.addEventListener('input', handleNameInput);
+            nameInput.addEventListener('keydown', handleNameKeydown);
+            
+            // Set initial state
+            continueBtn.disabled = nameInput.value.trim().length === 0;
+            
+            console.log('✅ Name input validation initialized');
+            
+            // Focus the input
+            setTimeout(() => {
+                nameInput.focus();
+            }, 300);
+        } else {
+            console.error('❌ Name input or continue button not found:', {
+                nameInput: !!nameInput,
+                continueBtn: !!continueBtn
+            });
+        }
+    }
+
+    function handleNameInput(event) {
+        const nameInput = event.target;
+        const continueBtn = document.querySelector('.btn-continue');
+        const hasName = nameInput.value.trim().length > 0;
+        
+        console.log('📝 Name input changed:', nameInput.value, 'Has name:', hasName);
+        
+        if (continueBtn) {
+            continueBtn.disabled = !hasName;
+            
+            // Visual feedback
+            if (hasName) {
+                continueBtn.style.opacity = '1';
+                continueBtn.style.cursor = 'pointer';
+            } else {
+                continueBtn.style.opacity = '0.5';
+                continueBtn.style.cursor = 'not-allowed';
+            }
+        }
+    }
+
+    function handleNameKeydown(event) {
+        if (event.key === 'Enter') {
+            const continueBtn = document.querySelector('.btn-continue');
+            if (continueBtn && !continueBtn.disabled) {
+                console.log('⏎ Enter pressed - triggering next question');
+                nextQuestion();
+            }
+        }
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
         console.log('🚀 DOM loaded, initializing quiz...');
@@ -510,26 +578,13 @@
         // Test if functions are available
         console.log('Functions check:', {
             openTwinWizard: typeof openTwinWizard,
+            nextQuestion: typeof nextQuestion,
             currentStep: typeof currentStep,
             answers: typeof answers
         });
         
-        // Initialize name input validation
-        const nameInput = document.getElementById('twinName');
-        const continueBtn = document.querySelector('.btn-continue');
-        
-        if (nameInput && continueBtn) {
-            nameInput.addEventListener('input', function() {
-                const hasName = this.value.trim().length > 0;
-                continueBtn.disabled = !hasName;
-            });
-
-            nameInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !continueBtn.disabled) {
-                    nextQuestion();
-                }
-            });
-        }
+        // Initialize name input if modal is already open
+        initializeNameInput();
 
         // Modal event handlers
         const twinModal = document.getElementById('twinModal');

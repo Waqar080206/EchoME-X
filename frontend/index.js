@@ -35,13 +35,72 @@ function openTwinWizard() {
     updateProgress();
     updateBackButton();
     
-    // Focus on name input after a short delay
+    // Initialize name input validation after a short delay
     setTimeout(() => {
-        const nameInput = document.getElementById('twinName');
-        if (nameInput) {
-            nameInput.focus();
-        }
+        initializeNameInput();
     }, 300);
+}
+
+function initializeNameInput() {
+    console.log('🔧 Initializing name input validation');
+    
+    const nameInput = document.getElementById('twinName');
+    const continueBtn = document.querySelector('.btn-continue');
+    
+    if (!nameInput || !continueBtn) {
+        console.error('❌ Name input or continue button not found');
+        return;
+    }
+    
+    // Clear any existing value and reset state
+    nameInput.value = '';
+    continueBtn.disabled = true;
+    
+    // Remove existing listeners to avoid duplicates
+    nameInput.removeEventListener('input', handleNameInput);
+    nameInput.removeEventListener('keydown', handleNameKeydown);
+    
+    // Add event listeners
+    nameInput.addEventListener('input', handleNameInput);
+    nameInput.addEventListener('keydown', handleNameKeydown);
+    
+    console.log('✅ Name input validation initialized');
+    
+    // Focus the input
+    nameInput.focus();
+}
+
+function handleNameInput(event) {
+    const nameInput = event.target;
+    const continueBtn = document.querySelector('.btn-continue');
+    const hasName = nameInput.value.trim().length > 0;
+    
+    console.log('📝 Name input changed:', `"${nameInput.value}"`, 'Has name:', hasName);
+    
+    if (continueBtn) {
+        continueBtn.disabled = !hasName;
+        
+        // Visual feedback
+        if (hasName) {
+            continueBtn.style.opacity = '1';
+            continueBtn.style.cursor = 'pointer';
+            continueBtn.style.transform = 'none';
+        } else {
+            continueBtn.style.opacity = '0.5';
+            continueBtn.style.cursor = 'not-allowed';
+        }
+    }
+}
+
+function handleNameKeydown(event) {
+    if (event.key === 'Enter') {
+        const continueBtn = document.querySelector('.btn-continue');
+        if (continueBtn && !continueBtn.disabled) {
+            console.log('⏎ Enter pressed - triggering next question');
+            event.preventDefault();
+            nextQuestion();
+        }
+    }
 }
 
 function closeTwinWizard() {
@@ -132,24 +191,33 @@ function nextQuestion() {
     
     if (currentStep === 0) {
         const nameInput = document.getElementById('twinName');
-        const name = nameInput.value.trim();
+        const name = nameInput ? nameInput.value.trim() : '';
+        
+        console.log('📝 Checking name input:', `"${name}"`);
         
         if (!name) {
             alert('Please enter your name');
+            if (nameInput) nameInput.focus();
             return;
         }
         
         answers.name = name;
-        console.log('📝 Saved name:', name);
+        console.log('✅ Saved name:', name);
     }
     
     if (currentStep < totalSteps - 1) {
         // Hide current step
-        document.getElementById(`step${currentStep}`).classList.remove('active');
+        const currentStepElement = document.getElementById(`step${currentStep}`);
+        if (currentStepElement) {
+            currentStepElement.classList.remove('active');
+        }
         
         // Show next step
         currentStep++;
-        document.getElementById(`step${currentStep}`).classList.add('active');
+        const nextStepElement = document.getElementById(`step${currentStep}`);
+        if (nextStepElement) {
+            nextStepElement.classList.add('active');
+        }
         
         updateProgress();
         updateBackButton();

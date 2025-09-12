@@ -257,18 +257,27 @@
     transition: all 0.3s ease !important;
     display: flex !important;
     align-items: center !important;
+    justify-content: center !important;
     gap: 0.5rem !important;
+    min-width: 120px !important;
 }
 
 .btn-continue:disabled {
     opacity: 0.5 !important;
     cursor: not-allowed !important;
+    background: rgba(139, 92, 246, 0.3) !important;
+    transform: none !important;
 }
 
 .btn-continue:not(:disabled):hover,
 .btn-accept:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4) !important;
+}
+
+.btn-continue:not(:disabled):active,
+.btn-accept:active {
+    transform: translateY(0) !important;
 }
 
 .btn-cancel,
