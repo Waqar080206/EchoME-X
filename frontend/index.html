@@ -504,125 +504,181 @@
     <script src="sidebar.js"></script>
 
     <script>
-    // Ensure openTwinWizard is available immediately
-    window.openTwinWizard = function() {
-        console.log('🚀 Opening twin wizard (emergency fallback)');
-        const modal = document.getElementById('twinModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            
-            // Reset and show first step
-            currentStep = 0;
-            document.querySelectorAll('.quiz-step').forEach(step => {
-                step.classList.remove('active');
-            });
-            const firstStep = document.getElementById('step0');
-            if (firstStep) {
-                firstStep.classList.add('active');
-            }
-            updateProgress();
-            
-            // Initialize the name input validation immediately
-            initializeNameInput();
-        }
-    };
-
-    function initializeNameInput() {
-        console.log('🔧 Initializing name input validation');
-        
-        const nameInput = document.getElementById('twinName');
-        const continueBtn = document.querySelector('.btn-continue');
-        
-        if (nameInput && continueBtn) {
-            // Remove any existing event listeners
-            nameInput.removeEventListener('input', handleNameInput);
-            nameInput.removeEventListener('keydown', handleNameKeydown);
-            
-            // Add fresh event listeners
-            nameInput.addEventListener('input', handleNameInput);
-            nameInput.addEventListener('keydown', handleNameKeydown);
-            
-            // Set initial state
-            continueBtn.disabled = nameInput.value.trim().length === 0;
-            
-            console.log('✅ Name input validation initialized');
-            
-            // Focus the input
-            setTimeout(() => {
-                nameInput.focus();
-            }, 300);
+// Safe emergency version that doesn't depend on other functions
+window.openTwinWizard = function() {
+    console.log('🚀 Opening twin wizard (safe emergency version)');
+    
+    const modal = document.getElementById('twinModal');
+    if (!modal) {
+        console.error('❌ Modal not found');
+        return;
+    }
+    
+    // Show modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
+    
+    // Reset to first step safely
+    document.querySelectorAll('.quiz-step').forEach((step, index) => {
+        if (index === 0) {
+            step.classList.add('active');
         } else {
-            console.error('❌ Name input or continue button not found:', {
-                nameInput: !!nameInput,
-                continueBtn: !!continueBtn
-            });
-        }
-    }
-
-    function handleNameInput(event) {
-        const nameInput = event.target;
-        const continueBtn = document.querySelector('.btn-continue');
-        const hasName = nameInput.value.trim().length > 0;
-        
-        console.log('📝 Name input changed:', nameInput.value, 'Has name:', hasName);
-        
-        if (continueBtn) {
-            continueBtn.disabled = !hasName;
-            
-            // Visual feedback
-            if (hasName) {
-                continueBtn.style.opacity = '1';
-                continueBtn.style.cursor = 'pointer';
-            } else {
-                continueBtn.style.opacity = '0.5';
-                continueBtn.style.cursor = 'not-allowed';
-            }
-        }
-    }
-
-    function handleNameKeydown(event) {
-        if (event.key === 'Enter') {
-            const continueBtn = document.querySelector('.btn-continue');
-            if (continueBtn && !continueBtn.disabled) {
-                console.log('⏎ Enter pressed - triggering next question');
-                nextQuestion();
-            }
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('🚀 DOM loaded, initializing quiz...');
-        
-        // Test if functions are available
-        console.log('Functions check:', {
-            openTwinWizard: typeof openTwinWizard,
-            nextQuestion: typeof nextQuestion,
-            currentStep: typeof currentStep,
-            answers: typeof answers
-        });
-        
-        // Initialize name input if modal is already open
-        initializeNameInput();
-
-        // Modal event handlers
-        const twinModal = document.getElementById('twinModal');
-        if (twinModal) {
-            twinModal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeTwinWizard();
-                }
-            });
-        }
-
-        const modalContent = document.querySelector('.modal-content');
-        if (modalContent) {
-            modalContent.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
+            step.classList.remove('active');
         }
     });
-    </script>
+    
+    // Show progress bar if it exists
+    const progressContainer = document.querySelector('.progress-container');
+    if (progressContainer) {
+        progressContainer.style.display = 'block';
+    }
+    
+    // Set initial progress
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    if (progressFill) progressFill.style.width = '0%';
+    if (progressText) progressText.textContent = 'Getting Started';
+    
+    // Initialize name input after a delay to ensure DOM is ready
+    setTimeout(() => {
+        initializeNameInputSafe();
+    }, 200);
+};
+
+// Safe name input initialization
+function initializeNameInputSafe() {
+    console.log('🔧 Safe name input initialization');
+    
+    const nameInput = document.getElementById('twinName');
+    const continueBtn = document.querySelector('.btn-continue, .continue-btn-modal, #continueButton');
+    
+    if (!nameInput || !continueBtn) {
+        console.error('❌ Elements not found for safe init');
+        return;
+    }
+    
+    // Clear and setup
+    nameInput.value = '';
+    continueBtn.disabled = true;
+    
+    // Remove existing listeners
+    nameInput.removeEventListener('input', handleNameInputSafe);
+    nameInput.removeEventListener('keydown', handleNameKeydownSafe);
+    
+    // Add new listeners
+    nameInput.addEventListener('input', handleNameInputSafe);
+    nameInput.addEventListener('keydown', handleNameKeydownSafe);
+    
+    // Focus
+    nameInput.focus();
+    
+    console.log('✅ Safe name input initialized');
+}
+
+function handleNameInputSafe(event) {
+    const value = event.target.value.trim();
+    const hasName = value.length > 0;
+    const continueBtn = document.querySelector('.btn-continue, .continue-btn-modal, #continueButton');
+    
+    console.log('📝 Safe name input:', value, 'Valid:', hasName);
+    
+    if (continueBtn) {
+        continueBtn.disabled = !hasName;
+        continueBtn.style.opacity = hasName ? '1' : '0.5';
+        continueBtn.style.cursor = hasName ? 'pointer' : 'not-allowed';
+    }
+}
+
+function handleNameKeydownSafe(event) {
+    if (event.key === 'Enter') {
+        const continueBtn = document.querySelector('.btn-continue, .continue-btn-modal, #continueButton');
+        if (continueBtn && !continueBtn.disabled) {
+            event.preventDefault();
+            // Use the main nextQuestion if available, otherwise call safe version
+            if (typeof nextQuestion === 'function') {
+                nextQuestion();
+            } else {
+                nextQuestionSafe();
+            }
+        }
+    }
+}
+
+function nextQuestionSafe() {
+    console.log('➡️ Safe next question');
+    
+    const nameInput = document.getElementById('twinName');
+    const name = nameInput ? nameInput.value.trim() : '';
+    
+    if (!name || name.length < 2) {
+        alert('Please enter a valid name (at least 2 characters)');
+        if (nameInput) nameInput.focus();
+        return;
+    }
+    
+    // Store the name
+    if (typeof answers !== 'undefined') {
+        answers.name = name;
+    } else {
+        window.tempAnswers = { name: name };
+    }
+    
+    console.log('✅ Name saved safely:', name);
+    
+    // Hide first step, show second step
+    const step0 = document.getElementById('step0');
+    const step1 = document.getElementById('step1');
+    
+    if (step0) step0.classList.remove('active');
+    if (step1) step1.classList.add('active');
+    
+    // Update progress
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    if (progressFill) progressFill.style.width = '9%'; // 1/11 questions
+    if (progressText) progressText.textContent = 'Question 1 of 11';
+    
+    console.log('✅ Advanced to question 1 safely');
+}
+
+// Make safe functions available
+window.initializeNameInputSafe = initializeNameInputSafe;
+window.nextQuestionSafe = nextQuestionSafe;
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM loaded - setting up safe handlers');
+    
+    // Override any existing continue button click handlers
+    const continueBtn = document.querySelector('.btn-continue, .continue-btn-modal, #continueButton');
+    if (continueBtn) {
+        continueBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Continue button clicked (safe handler)');
+            
+            if (!this.disabled) {
+                if (typeof nextQuestion === 'function') {
+                    nextQuestion();
+                } else {
+                    nextQuestionSafe();
+                }
+            }
+        });
+    }
+    
+    // Setup modal close handlers
+    const modal = document.getElementById('twinModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                document.body.classList.remove('modal-open');
+            }
+        });
+    }
+});
+</script>
 </body>
 </html>
