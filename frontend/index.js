@@ -4,6 +4,7 @@ const answers = {};
 
 const API_BASE_URL = 'https://echome-x.onrender.com';
 
+// Define openTwinWizard function immediately
 function openTwinWizard() {
     console.log('🚀 Opening twin wizard');
     
@@ -16,6 +17,7 @@ function openTwinWizard() {
     // Show modal
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
     
     // Reset quiz state
     resetQuiz();
@@ -35,82 +37,75 @@ function openTwinWizard() {
     updateProgress();
     updateBackButton();
     
-    // Initialize name input validation after a short delay
+    // Initialize name input validation immediately (no delay)
     setTimeout(() => {
-        initializeNameInput();
-    }, 300);
+        initializeNameInputValidation();
+    }, 100);
 }
 
-function initializeNameInput() {
+// Fix the name input initialization
+function initializeNameInputValidation() {
     console.log('🔧 Initializing name input validation');
     
     const nameInput = document.getElementById('twinName');
     const continueBtn = document.querySelector('.btn-continue');
     
     if (!nameInput || !continueBtn) {
-        console.error('❌ Name input or continue button not found');
+        console.error('❌ Elements not found:', {
+            nameInput: !!nameInput,
+            continueBtn: !!continueBtn
+        });
         return;
     }
     
-    // Clear any existing value and reset state
+    // Clear existing value and set initial state
     nameInput.value = '';
     continueBtn.disabled = true;
+    continueBtn.style.opacity = '0.5';
+    continueBtn.style.cursor = 'not-allowed';
     
-    // Remove existing listeners to avoid duplicates
-    nameInput.removeEventListener('input', handleNameInput);
-    nameInput.removeEventListener('keydown', handleNameKeydown);
+    // Remove any existing event listeners
+    const newNameInput = nameInput.cloneNode(true);
+    nameInput.parentNode.replaceChild(newNameInput, nameInput);
     
-    // Add event listeners
-    nameInput.addEventListener('input', handleNameInput);
-    nameInput.addEventListener('keydown', handleNameKeydown);
+    // Add event listeners to the new input
+    newNameInput.addEventListener('input', function(event) {
+        const value = event.target.value.trim();
+        const hasName = value.length > 0;
+        
+        console.log('📝 Name input changed:', `"${value}"`, 'Valid:', hasName);
+        
+        const btn = document.querySelector('.btn-continue');
+        if (btn) {
+            btn.disabled = !hasName;
+            
+            if (hasName) {
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.style.background = 'linear-gradient(135deg, #8B5CF6, #A855F7)';
+            } else {
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+                btn.style.background = 'rgba(139, 92, 246, 0.3)';
+            }
+        }
+    });
     
-    console.log('✅ Name input validation initialized');
+    newNameInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            const btn = document.querySelector('.btn-continue');
+            if (btn && !btn.disabled) {
+                console.log('⏎ Enter key pressed - continuing');
+                event.preventDefault();
+                nextQuestion();
+            }
+        }
+    });
     
     // Focus the input
-    nameInput.focus();
-}
-
-function handleNameInput(event) {
-    const nameInput = event.target;
-    const continueBtn = document.querySelector('.btn-continue');
-    const hasName = nameInput.value.trim().length > 0;
+    newNameInput.focus();
     
-    console.log('📝 Name input changed:', `"${nameInput.value}"`, 'Has name:', hasName);
-    
-    if (continueBtn) {
-        continueBtn.disabled = !hasName;
-        
-        // Visual feedback
-        if (hasName) {
-            continueBtn.style.opacity = '1';
-            continueBtn.style.cursor = 'pointer';
-            continueBtn.style.transform = 'none';
-        } else {
-            continueBtn.style.opacity = '0.5';
-            continueBtn.style.cursor = 'not-allowed';
-        }
-    }
-}
-
-function handleNameKeydown(event) {
-    if (event.key === 'Enter') {
-        const continueBtn = document.querySelector('.btn-continue');
-        if (continueBtn && !continueBtn.disabled) {
-            console.log('⏎ Enter pressed - triggering next question');
-            event.preventDefault();
-            nextQuestion();
-        }
-    }
-}
-
-function closeTwinWizard() {
-    console.log('🔒 Closing twin wizard');
-    const modal = document.getElementById('twinModal');
-    if (modal) {
-        modal.classList.remove('active');
-    }
-    document.body.style.overflow = '';
-    resetQuiz();
+    console.log('✅ Name input validation initialized successfully');
 }
 
 function resetQuiz() {
@@ -119,17 +114,6 @@ function resetQuiz() {
     
     // Clear answers
     Object.keys(answers).forEach(key => delete answers[key]);
-    
-    // Reset form inputs
-    const nameInput = document.getElementById('twinName');
-    if (nameInput) {
-        nameInput.value = '';
-    }
-    
-    const continueBtn = document.querySelector('.btn-continue');
-    if (continueBtn) {
-        continueBtn.disabled = true;
-    }
     
     // Reset all option buttons
     document.querySelectorAll('.option-btn').forEach(btn => {
@@ -145,6 +129,60 @@ function resetQuiz() {
     const progressContainer = document.querySelector('.progress-container');
     if (progressContainer) {
         progressContainer.style.display = 'block';
+    }
+}
+
+function nextQuestion() {
+    console.log('➡️ Next question from step:', currentStep);
+    
+    // Handle name input on step 0
+    if (currentStep === 0) {
+        const nameInput = document.getElementById('twinName');
+        const name = nameInput ? nameInput.value.trim() : '';
+        
+        console.log('📝 Processing name:', `"${name}"`);
+        
+        if (!name || name.length < 2) {
+            alert('Please enter a valid name (at least 2 characters)');
+            if (nameInput) {
+                nameInput.focus();
+                nameInput.style.borderColor = '#ef4444';
+                setTimeout(() => {
+                    nameInput.style.borderColor = '';
+                }, 3000);
+            }
+            return;
+        }
+        
+        answers.name = name;
+        console.log('✅ Name saved:', name);
+    }
+    
+    if (currentStep < totalSteps - 1) {
+        // Hide current step with animation
+        const currentStepElement = document.getElementById(`step${currentStep}`);
+        if (currentStepElement) {
+            currentStepElement.classList.remove('active');
+            currentStepElement.style.opacity = '0';
+            setTimeout(() => {
+                currentStepElement.style.opacity = '';
+            }, 300);
+        }
+        
+        // Show next step
+        currentStep++;
+        const nextStepElement = document.getElementById(`step${currentStep}`);
+        if (nextStepElement) {
+            nextStepElement.classList.add('active');
+        }
+        
+        updateProgress();
+        updateBackButton();
+        
+        // Restore any selected options for this step
+        restoreSelectedOption();
+        
+        console.log('✅ Advanced to step:', currentStep);
     }
 }
 
@@ -186,46 +224,6 @@ function updateBackButton() {
     });
 }
 
-function nextQuestion() {
-    console.log('➡️ Next question from step:', currentStep);
-    
-    if (currentStep === 0) {
-        const nameInput = document.getElementById('twinName');
-        const name = nameInput ? nameInput.value.trim() : '';
-        
-        console.log('📝 Checking name input:', `"${name}"`);
-        
-        if (!name) {
-            alert('Please enter your name');
-            if (nameInput) nameInput.focus();
-            return;
-        }
-        
-        answers.name = name;
-        console.log('✅ Saved name:', name);
-    }
-    
-    if (currentStep < totalSteps - 1) {
-        // Hide current step
-        const currentStepElement = document.getElementById(`step${currentStep}`);
-        if (currentStepElement) {
-            currentStepElement.classList.remove('active');
-        }
-        
-        // Show next step
-        currentStep++;
-        const nextStepElement = document.getElementById(`step${currentStep}`);
-        if (nextStepElement) {
-            nextStepElement.classList.add('active');
-        }
-        
-        updateProgress();
-        updateBackButton();
-        
-        console.log('✅ Moved to step:', currentStep);
-    }
-}
-
 function previousQuestion() {
     console.log('⬅️ Previous question from step:', currentStep);
     
@@ -240,6 +238,13 @@ function previousQuestion() {
         updateProgress();
         updateBackButton();
         restoreSelectedOption();
+        
+        // Re-initialize name input if going back to step 0
+        if (currentStep === 0) {
+            setTimeout(() => {
+                initializeNameInputValidation();
+            }, 100);
+        }
         
         console.log('✅ Moved back to step:', currentStep);
     }
@@ -281,6 +286,17 @@ function restoreSelectedOption() {
     }
 }
 
+function closeTwinWizard() {
+    console.log('🔒 Closing twin wizard');
+    const modal = document.getElementById('twinModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    document.body.style.overflow = '';
+    document.body.classList.remove('modal-open');
+    resetQuiz();
+}
+
 function skipSocialMedia() {
     console.log('⏭️ Skipping social media permissions');
     answers.socialMedia = {};
@@ -319,36 +335,19 @@ function showLoadingStep() {
         step.classList.remove('active');
     });
     
-    // Show or create loading step
+    // Show loading step
     let loadingStep = document.getElementById('loadingStep');
-    if (!loadingStep) {
-        loadingStep = document.createElement('div');
-        loadingStep.className = 'quiz-step';
-        loadingStep.id = 'loadingStep';
-        loadingStep.innerHTML = `
-            <div class="question-container" style="text-align: center;">
-                <div class="loading-animation">
-                    <div class="loading-spinner"></div>
-                </div>
-                <h2 class="question-title">Creating Your AI Twin</h2>
-                <p class="question-subtitle">This may take a few moments...</p>
-                <div class="loading-progress">
-                    <div class="loading-bar" id="loadingBar"></div>
-                </div>
-            </div>
-        `;
-        document.querySelector('.modal-content').appendChild(loadingStep);
-    }
-    
-    loadingStep.classList.add('active');
-    
-    // Animate loading bar
-    const loadingBar = document.getElementById('loadingBar');
-    if (loadingBar) {
-        loadingBar.style.width = '0%';
-        setTimeout(() => {
-            loadingBar.style.width = '90%';
-        }, 500);
+    if (loadingStep) {
+        loadingStep.classList.add('active');
+        
+        // Animate loading bar
+        const loadingBar = document.getElementById('loadingBar');
+        if (loadingBar) {
+            loadingBar.style.width = '0%';
+            setTimeout(() => {
+                loadingBar.style.width = '90%';
+            }, 500);
+        }
     }
 }
 
@@ -521,7 +520,7 @@ function goToChat() {
     }, 300);
 }
 
-// Make functions available globally immediately
+// Make all functions globally available immediately
 window.openTwinWizard = openTwinWizard;
 window.closeTwinWizard = closeTwinWizard;
 window.nextQuestion = nextQuestion;
@@ -531,7 +530,7 @@ window.skipSocialMedia = skipSocialMedia;
 window.acceptPermissions = acceptPermissions;
 window.goToChat = goToChat;
 
-console.log('✅ index.js loaded, functions available globally');
+console.log('✅ index.js loaded, all functions available globally');
 
 // Debug CSS loading
 document.addEventListener('DOMContentLoaded', function() {

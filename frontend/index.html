@@ -105,11 +105,14 @@
                 <div class="question-container">
                     <h2 class="question-title">Let's start with your <span class="accent">name</span></h2>
                     <p class="question-subtitle">What should we call your AI twin?</p>
-                    <input type="text" class="name-input" id="twinName" placeholder="Enter your name" maxlength="50">
+                    <input type="text" class="name-input" id="twinName" placeholder="Enter your name" maxlength="50" autocomplete="given-name">
                     <div class="step-buttons">
                         <button class="btn-cancel" onclick="closeTwinWizard()">Cancel</button>
-                        <button class="btn-continue" onclick="console.log('Continue clicked!'); nextQuestion()" disabled>
+                        <button class="btn-continue" id="continueButton" disabled>
                             Continue
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9 18l6-6-6-6"/>
+                            </svg>
                         </button>
                     </div>
                 </div>
