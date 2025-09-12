@@ -257,7 +257,7 @@
     transition: all 0.3s ease !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
+     justify-content: center !important;
     gap: 0.5rem !important;
     min-width: 120px !important;
 }
@@ -297,6 +297,44 @@
 .btn-skip:hover {
     background: rgba(255, 255, 255, 0.05) !important;
     color: #FFFFFF !important;
+}
+
+/* OVERRIDE ALL CONFLICTING BUTTON STYLES */
+.continue-btn-modal {
+    background: linear-gradient(135deg, #8B5CF6, #A855F7) !important;
+    color: white !important;
+    padding: 12px 24px !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    font-size: 0.875rem !important;
+    transition: all 0.3s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    min-width: 120px !important;
+    justify-content: center !important;
+}
+
+.continue-btn-modal:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    background: rgba(139, 92, 246, 0.3) !important;
+}
+
+.continue-btn-modal:not(:disabled) {
+    opacity: 1 !important;
+    cursor: pointer !important;
+}
+
+.continue-btn-modal:not(:disabled):hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4) !important;
+}
+
+.continue-btn-modal:not(:disabled):active {
+    transform: translateY(0) !important;
 }
 
 /* Permissions Step */
@@ -457,4 +495,10 @@
         width: 100% !important;
         justify-content: center !important;
     }
+}
+
+/* From css/components.css - Line 40 */
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    /* ... conflicts with modal.css */
 }

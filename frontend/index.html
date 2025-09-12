@@ -108,7 +108,24 @@
                     <input type="text" class="name-input" id="twinName" placeholder="Enter your name" maxlength="50" autocomplete="given-name">
                     <div class="step-buttons">
                         <button class="btn-cancel" onclick="closeTwinWizard()">Cancel</button>
-                        <button class="btn-continue" id="continueButton" disabled>
+                        <button 
+                            class="continue-btn-modal" 
+                            id="continueButton" 
+                            onclick="nextQuestion()" 
+                            disabled 
+                            style="
+                                background: linear-gradient(135deg, #8B5CF6, #A855F7);
+                                color: white;
+                                padding: 12px 24px;
+                                border: none;
+                                border-radius: 8px;
+                                font-weight: 600;
+                                cursor: pointer;
+                                font-size: 0.875rem;
+                                opacity: 0.5;
+                                transition: all 0.3s ease;
+                            "
+                        >
                             Continue
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M9 18l6-6-6-6"/>

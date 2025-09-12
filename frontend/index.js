@@ -48,7 +48,7 @@ function initializeNameInputValidation() {
     console.log('🔧 Initializing name input validation');
     
     const nameInput = document.getElementById('twinName');
-    const continueBtn = document.querySelector('.btn-continue');
+    const continueBtn = document.querySelector('.continue-btn-modal'); // Changed class
     
     if (!nameInput || !continueBtn) {
         console.error('❌ Elements not found:', {
@@ -61,8 +61,6 @@ function initializeNameInputValidation() {
     // Clear existing value and set initial state
     nameInput.value = '';
     continueBtn.disabled = true;
-    continueBtn.style.opacity = '0.5';
-    continueBtn.style.cursor = 'not-allowed';
     
     // Remove any existing event listeners
     const newNameInput = nameInput.cloneNode(true);
@@ -75,25 +73,23 @@ function initializeNameInputValidation() {
         
         console.log('📝 Name input changed:', `"${value}"`, 'Valid:', hasName);
         
-        const btn = document.querySelector('.btn-continue');
+        const btn = document.querySelector('.continue-btn-modal'); // Changed class
         if (btn) {
             btn.disabled = !hasName;
             
             if (hasName) {
                 btn.style.opacity = '1';
                 btn.style.cursor = 'pointer';
-                btn.style.background = 'linear-gradient(135deg, #8B5CF6, #A855F7)';
             } else {
                 btn.style.opacity = '0.5';
                 btn.style.cursor = 'not-allowed';
-                btn.style.background = 'rgba(139, 92, 246, 0.3)';
             }
         }
     });
     
     newNameInput.addEventListener('keydown', function(event) {
         if (event.key === 'Enter') {
-            const btn = document.querySelector('.btn-continue');
+            const btn = document.querySelector('.continue-btn-modal'); // Changed class
             if (btn && !btn.disabled) {
                 console.log('⏎ Enter key pressed - continuing');
                 event.preventDefault();
