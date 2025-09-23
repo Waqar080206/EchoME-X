@@ -13,13 +13,51 @@ const PORT = process.env.PORT || 3001;
 const isProduction = process.env.NODE_ENV === 'production';
 console.log(`🌍 Environment: ${isProduction ? 'Production' : 'Development'}`);
 
-// Middleware
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'https://echo-me-x.vercel.app',
-  credentials: true
-}));
+// CORS configuration for both local and production
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      // Production frontend URLs (update these with your actual URLs)
+      'https://your-vercel-app.vercel.app',
+      'https://your-netlify-app.netlify.app',
+      
+      // Local development
+      'http://localhost:5173', // Vite
+      'http://localhost:3000', // React
+      'http://localhost:5500', // Live Server
+      'http://localhost:8080', // Common dev port
+      'http://127.0.0.1:5500', // Live Server alternative
+      'http://127.0.0.1:5173', // Vite alternative
+      
+      // Environment variable (for dynamic configuration)
+      process.env.CORS_ORIGIN
+    ].filter(Boolean); // Remove any undefined values
+    
+    console.log('🔍 CORS Check - Origin:', origin);
+    console.log('🔍 CORS Check - Allowed origins:', allowedOrigins);
+    
+    if (allowedOrigins.includes(origin)) {
+      console.log('✅ CORS - Origin allowed');
+      callback(null, true);
+    } else {
+      console.log('❌ CORS - Origin blocked');
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Serve static files from frontend directory
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Security headers for production
 if (isProduction) {
@@ -62,114 +100,26 @@ app.get('/test', (req, res) => {
   });
 });
 
-// API Routes - Add the exact endpoint your frontend calls
-app.post('/api/create-personality-twin', (req, res) => {
-  try {
-    console.log('Creating personality twin with data:', req.body);
-    
-    const { answers, socialMedia, permissions } = req.body;
-    
-    // Generate a unique twin ID
-    const twinId = 'twin_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    
-    // Simulate personality analysis
-    const personalityTraits = {
-      openness: Math.floor(Math.random() * 100),
-      conscientiousness: Math.floor(Math.random() * 100),
-      extraversion: Math.floor(Math.random() * 100),
-      agreeableness: Math.floor(Math.random() * 100),
-      neuroticism: Math.floor(Math.random() * 100)
-    };
-    
-    res.json({
-      success: true,
-      message: 'Personality twin created successfully!',
-      twin: {
-        id: twinId,
-        personality: personalityTraits,
-        answers: answers || {},
-        socialMedia: socialMedia || {},
-        permissions: permissions || {},
-        created: new Date().toISOString(),
-        status: 'active'
-      }
-    });
-  } catch (error) {
-    console.error('Error creating personality twin:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create personality twin',
-      details: error.message
-    });
-  }
+// Add this BEFORE app.use('/api', apiRoutes) in server.js
+app.use('/api', (req, res, next) => {
+  console.log('\n🔍 === INCOMING API REQUEST ===');
+  console.log('Time:', new Date().toISOString());
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Body:', req.body);
+  console.log('==============================\n');
+  next();
 });
 
-// Legacy train endpoint
-app.post('/api/train', (req, res) => {
-  try {
-    console.log('Received train request:', req.body);
-    res.json({
-      success: true,
-      message: 'Twin trained successfully!',
-      twinId: 'twin_' + Date.now()
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Training failed'
-    });
-  }
-});
+// API Routes
+app.use('/api', apiRoutes);
 
-// Twin info endpoint
-app.get('/api/twin-info', (req, res) => {
-  res.json({
-    success: true,
-    twin: {
-      id: 'twin_example',
-      name: 'Your AI Twin',
-      personality: 'friendly and helpful',
-      created: new Date().toISOString(),
-      status: 'active'
-    }
-  });
+// Remove or comment out the duplicate endpoints below since they're handled by routes/api.js
+/*
+app.post('/api/chat-with-personality', async (req, res) => {
+    // Remove this duplicate
 });
-
-// Chat endpoints
-app.post('/api/chat', (req, res) => {
-  try {
-    const { message } = req.body;
-    
-    res.json({
-      success: true,
-      response: `Echo: ${message}`,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Chat failed'
-    });
-  }
-});
-
-app.post('/api/chat-with-personality', (req, res) => {
-  try {
-    const { message, twinId } = req.body;
-    
-    res.json({
-      success: true,
-      response: `Personality response to: ${message}`,
-      twinId: twinId,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Personality chat failed'
-    });
-  }
-});
+*/
 
 // Debug endpoint to see all available routes
 app.get('/api/routes', (req, res) => {
@@ -186,6 +136,13 @@ app.get('/api/routes', (req, res) => {
       'GET /api/routes'
     ]
   });
+});
+
+// Serve frontend for any non-API routes (SPA fallback)
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
+  }
 });
 
 // 404 handler with better debugging
@@ -206,7 +163,8 @@ app.use('*', (req, res) => {
       'POST /api/train',
       'GET /api/twin-info',
       'POST /api/chat',
-      'POST /api/chat-with-personality'
+      'POST /api/chat-with-personality', // ✅ Correct endpoint name
+      'GET /api/debug-twins'
     ]
   });
 });
@@ -217,6 +175,21 @@ app.use((err, req, res, next) => {
   res.status(500).json({ 
     error: 'Internal server error',
     timestamp: new Date().toISOString()
+  });
+});
+
+// Add this error handling middleware AFTER your routes in server.js
+app.use((err, req, res, next) => {
+  console.error('💥 EXPRESS ERROR CAUGHT:');
+  console.error('Error name:', err.name);
+  console.error('Error message:', err.message);
+  console.error('Error stack:', err.stack);
+  console.error('Request URL:', req.url);
+  
+  res.status(500).json({ 
+    error: 'Internal server error',
+    timestamp: new Date().toISOString(),
+    details: err.message
   });
 });
 
@@ -231,6 +204,8 @@ const startServer = async () => {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🎨 Frontend available at: http://localhost:${PORT}`);
+      console.log(`📡 Backend API at: http://localhost:${PORT}/api`);
       console.log('📡 Available endpoints:');
       console.log('  POST /api/create-personality-twin');
       console.log('  POST /api/train');

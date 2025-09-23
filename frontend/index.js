@@ -282,17 +282,41 @@ function selectOption(button) {
     }, 800);
 }
 
+// Update these functions around line 270-290
 function skipSocialMedia() {
+    console.log('📝 Skipping social media permissions');
     answers.socialMediaPermissions = 'skipped';
+    
+    // Proceed to create twin
+    console.log('🚀 Starting twin creation after skip...');
     createTwin();
 }
 
-function acceptPermissions() {
-    // Collect all quiz data
-    const twinData = collectQuizData();
+// Add this function and call it before createTwin
+function debugAnswers() {
+    console.log('🔍 DEBUG ANSWERS:');
+    console.log('- answers exists:', !!answers);
+    console.log('- answers type:', typeof answers);
+    console.log('- answers keys:', Object.keys(answers || {}));
+    console.log('- answers content:', answers);
+    console.log('- name exists:', !!answers?.name);
+    console.log('- name value:', answers?.name);
     
-    // Create the twin with the collected data
-    createTwin(twinData);
+    // Check individual question answers
+    for (let i = 1; i <= 11; i++) {
+        console.log(`- q${i}:`, answers[`q${i}`]);
+    }
+}
+
+// Call this in acceptPermissions function
+function acceptPermissions() {
+    console.log('📝 Accepting social media permissions');
+    
+    // Debug first
+    debugAnswers();
+    
+    // Then proceed
+    createTwin();
 }
 
 // Function to collect quiz data - FIXED VERSION
@@ -306,91 +330,149 @@ function collectQuizData() {
     
     return personalityData;
 }
-
-// Replace the existing createTwin function
-async function createTwin(twinData) {
+// Update the createTwin function
+async function createTwin() {
     try {
-        console.log('Creating personality twin with data:', twinData);
+        console.log('🚀 CreateTwin function called');
+        console.log('📊 Current answers:', answers);
         
-        // If twinData is undefined, collect it
-        if (!twinData) {
-            twinData = collectQuizData();
-            console.log('Collected quiz data:', twinData);
+        // Build personality data
+        const personalityData = buildPersonalityData(answers);
+        console.log('📝 Built personality data:', personalityData);
+        
+        // Check if personalityData is valid
+        if (!personalityData) {
+            throw new Error('Failed to build personality data from answers');
         }
         
-        const response = await fetch(`${API_BASE_URL}/api/create-personality-twin`, {
+        // Show loading step
+        showLoadingStep();
+        
+        // Debug the API URL
+        const API_BASE_URL = 'http://localhost:3001'; // Hardcode for testing
+        const fullURL = `${API_BASE_URL}/api/create-personality-twin`;
+        
+        console.log('🌐 Making API call to:', fullURL);
+        console.log('📦 Sending data:', JSON.stringify(personalityData, null, 2));
+        
+        // Test if fetch is available
+        console.log('🔍 Fetch available:', typeof fetch !== 'undefined');
+        
+        const response = await fetch(fullURL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(twinData)
+            body: JSON.stringify(personalityData)
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        console.log('📡 Response received:', response);
+        console.log('📡 Response status:', response.status);
+        console.log('📡 Response ok:', response.ok);
 
-        const result = await response.json();
-        console.log('✅ Twin creation successful:', result);
-        
-        // Store the twin data
-        localStorage.setItem('currentTwin', JSON.stringify(result.twin));
-        
-        // Show success and redirect
-        showTwinCreationSuccess(result);
-        
-        return result;
+        // ... rest of your function
         
     } catch (error) {
-        console.error('❌ Error creating personality twin:', error);
-        throw error;
+        console.error('❌ Error in createTwin:', error);
+        console.error('❌ Error stack:', error.stack);
     }
 }
 
-// Function to show twin creation success - FIXED VERSION
+// Replace the showTwinCreationSuccess function around line 450
 function showTwinCreationSuccess(result) {
-    console.log('Showing success for result:', result);
+    console.log('🎉 Twin creation successful:', result);
     
-    // Hide current quiz step
-    document.querySelectorAll('.quiz-step').forEach(step => {
-        step.classList.remove('active');
-    });
+    // Ensure we have the proper MongoDB ID
+    if (!result.twinId) {
+        console.error('❌ No twinId received from backend:', result);
+        alert('Twin created but no ID received. Please try again.');
+        return;
+    }
     
-    // Create success step if it doesn't exist
+    console.log('📝 Backend returned twinId:', result.twinId);
+    console.log('📝 TwinId type:', typeof result.twinId);
+    console.log('📝 TwinId length:', result.twinId.length);
+    
+    // Validate that it looks like a MongoDB ObjectId (24 hex characters)
+    const mongoIdPattern = /^[0-9a-fA-F]{24}$/;
+    if (!mongoIdPattern.test(result.twinId)) {
+        console.error('❌ Invalid MongoDB ObjectId format:', result.twinId);
+        alert('Invalid twin ID format received. Please try again.');
+        return;
+    }
+    
+    console.log('✅ Valid MongoDB ObjectId received');
+    
+    // Store the twin data with the proper MongoDB ID
+    const twinData = {
+        id: result.twinId, // MongoDB ObjectId as string
+        _id: result.twinId, // Also store as _id for compatibility
+        name: answers.name || result.twin?.name || 'Your Twin',
+        status: 'active',
+        personality: result.twin?.personality || answers,
+        hasPersonality: true,
+        created: new Date().toISOString()
+    };
+    
+    console.log('💾 Storing twin data:', twinData);
+    
+    // Store current twin data
+    localStorage.setItem('currentTwin', JSON.stringify(twinData));
+    localStorage.setItem('twinId', twinData.id);
+    localStorage.setItem('twinName', twinData.name);
+    localStorage.setItem('personalityProfile', JSON.stringify(twinData.personality));
+    
+    // Add to twins list for sidebar
+    addTwinToList(twinData);
+    
+    console.log('✅ Twin data stored successfully with MongoDB ID:', twinData.id);
+    
+    // Show final success
+    showFinalSuccess(result);
+}
+
+// Update the showFinalSuccess function to use the backend-generated ID
+function showFinalSuccess(result) {
+    // Hide loading step
+    const loadingStep = document.getElementById('loadingStep');
+    if (loadingStep) {
+        loadingStep.classList.remove('active');
+    }
+    
+    // Find the quiz container
+    let quizContainer = document.querySelector('.quiz-container') || 
+                       document.querySelector('.modal-content') || 
+                       document.querySelector('#twinModal .modal-content');
+    
+    if (!quizContainer) {
+        // Fallback: redirect to chat
+        alert('Twin created successfully! Redirecting to chat...');
+        setTimeout(() => {
+            window.location.href = 'chat.html';
+        }, 1000);
+        return;
+    }
+    
+    // Create or update success step
     let successStep = document.getElementById('successStep');
     if (!successStep) {
         successStep = document.createElement('div');
         successStep.className = 'quiz-step';
         successStep.id = 'successStep';
-        document.querySelector('.quiz-container').appendChild(successStep);
+        quizContainer.appendChild(successStep);
     }
     
-    // Show success content
+    // Simple success content - just congratulations and start button
+    const twinName = result.twin?.name || answers.name || 'Your Twin';
+    
     successStep.innerHTML = `
         <div class="question-container">
-            <div class="success-icon">✅</div>
-            <h2 class="question-title">Your AI Twin is <span class="accent">Ready!</span></h2>
-            <div class="twin-info">
-                <p><strong>Twin ID:</strong> ${result.twin?.id || 'Generated'}</p>
-                <p><strong>Created:</strong> ${new Date().toLocaleString()}</p>
-                <p><strong>Status:</strong> Active</p>
-            </div>
-            
-            <div class="personality-preview">
-                <h3>Personality Traits Preview:</h3>
-                <div class="traits-preview">
-                    ${result.twin?.personality ? Object.entries(result.twin.personality).slice(0, 3).map(([trait, value]) => `
-                        <div class="trait-preview">
-                            <span>${trait.charAt(0).toUpperCase() + trait.slice(1)}:</span>
-                            <span class="trait-value">${value}%</span>
-                        </div>
-                    `).join('') : '<p>Personality analysis complete!</p>'}
-                </div>
-            </div>
+            <div class="success-icon">🎉</div>
+            <h2 class="question-title">Congratulations!</h2>
+            <p class="success-message">${twinName} has been created successfully!</p>
             
             <div class="action-buttons">
                 <button onclick="goToChat()" class="btn-primary">Start Chatting</button>
-                <button onclick="goToAnalytics()" class="btn-secondary">View Analytics</button>
             </div>
         </div>
     `;
@@ -399,14 +481,76 @@ function showTwinCreationSuccess(result) {
     successStep.classList.add('active');
     
     // Hide progress bar
-    document.querySelector('.progress-container').style.display = 'none';
-    
-    // Store the twin data for navigation
-    if (result.twin) {
-        localStorage.setItem('twinId', result.twin.id);
-        localStorage.setItem('twinName', result.twin.name || result.twinId);
-        localStorage.setItem('personalityProfile', JSON.stringify(result.twin.personality || {}));
+    const progressContainer = document.querySelector('.progress-container');
+    if (progressContainer) {
+        progressContainer.style.display = 'none';
     }
+    
+    // Store the twin data using the backend-generated ID
+    const twinData = {
+        id: result.twinId || result.data?.id, // Use backend-generated MongoDB ID
+        name: answers.name || result.twin?.name || 'Your Twin',
+        status: 'active',
+        personality: result.twin?.personality || {},
+        created: new Date().toISOString()
+    };
+    
+    // Store current twin and add to twins list
+    localStorage.setItem('currentTwin', JSON.stringify(twinData));
+    localStorage.setItem('twinId', twinData.id); // This should be the MongoDB ID
+    localStorage.setItem('twinName', twinData.name);
+    localStorage.setItem('personalityProfile', JSON.stringify(twinData.personality));
+    
+    // Add to twins list for sidebar
+    addTwinToList(twinData);
+    
+    console.log('✅ Twin data stored with backend ID:', twinData);
+}
+
+// Add function to manage twins list
+function addTwinToList(twinData) {
+    let twins = [];
+    try {
+        const existingTwins = localStorage.getItem('userTwins');
+        if (existingTwins) {
+            twins = JSON.parse(existingTwins);
+        }
+    } catch (error) {
+        console.error('Error parsing existing twins:', error);
+        twins = [];
+    }
+    
+    // Check if twin already exists (avoid duplicates)
+    const existingIndex = twins.findIndex(twin => twin.id === twinData.id);
+    if (existingIndex > -1) {
+        // Update existing twin
+        twins[existingIndex] = twinData;
+    } else {
+        // Add new twin
+        twins.push(twinData);
+    }
+    
+    // Store updated twins list
+    localStorage.setItem('userTwins', JSON.stringify(twins));
+    
+    console.log('Twin added to list. Total twins:', twins.length);
+}
+
+// Update the animateLoading function to be more realistic
+function animateLoading() {
+    const loadingBar = document.getElementById('loadingBar');
+    let progress = 0;
+    
+    const interval = setInterval(() => {
+        progress += Math.random() * 10 + 5; // Faster progress
+        if (progress > 100) progress = 100;
+        
+        loadingBar.style.width = `${progress}%`;
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+        }
+    }, 150);
 }
 
 // Navigation functions
@@ -419,37 +563,88 @@ function goToAnalytics() {
 }
 
 function createNewTwin() {
-    localStorage.removeItem('currentTwin');
-    window.location.reload();
+    // Reset the quiz
+    currentStep = 0;
+    answers = {};
+    
+    // Hide success step
+    const successStep = document.getElementById('successStep');
+    if (successStep) {
+        successStep.classList.remove('active');
+    }
+    
+    // Show first step
+    showQuestion(0);
+    
+    // Show progress bar again
+    const progressContainer = document.querySelector('.progress-container');
+    if (progressContainer) {
+        progressContainer.style.display = 'block';
+    }
 }
 
+// Update the buildPersonalityData function around line 620
 function buildPersonalityData(answers) {
-    console.log('Building personality data from answers:', answers);
+    console.log('🔧 Building personality data from answers:', answers);
     
-    // Validate we have required data
-    if (!answers.name) {
-        console.error('Missing name in answers');
+    // Validate we have answers
+    if (!answers || typeof answers !== 'object') {
+        console.error('❌ No answers provided to buildPersonalityData');
         return null;
     }
     
-    // Map quiz answers to personality traits
-    const traits = {
-        extraversion: answers.q1 === 'extraverted' ? 0.8 : 0.2,
-        openness: answers.q2 === 'open' ? 0.8 : 0.2,
-        conscientiousness: answers.q3 === 'organized' ? 0.8 : 0.2,
-        agreeableness: answers.q4 === 'agreeable' ? 0.8 : 0.2,
-        neuroticism: answers.q5 === 'sensitive' ? 0.8 : 0.2,
-        optimism: answers.q6 === 'optimistic' ? 0.8 : 0.2,
-        thinking_style: answers.q7 === 'practical' ? 'practical' : 'creative',
-        decision_style: answers.q8 === 'emotional' ? 'emotional' : 'logical',
-        planning_style: answers.q9 === 'decisive' ? 'decisive' : 'flexible',
-        worldview: answers.q10 === 'positive' ? 'optimistic' : 'realistic'
-    };
+    // Validate name exists
+    if (!answers.name || typeof answers.name !== 'string') {
+        console.error('❌ Name is missing or invalid:', answers.name);
+        return null;
+    }
+    
+    // Build traits from quiz answers
+    const traits = {};
+    
+    // Map quiz answers to Big Five traits
+    try {
+        // Extraversion (social energy)
+        traits.extraversion = parseFloat(answers.q2) || 0.5; // Social situations question
+        
+        // Openness (creativity/curiosity)
+        traits.openness = parseFloat(answers.q3) || 0.5; // New experiences question
+        
+        // Conscientiousness (organization)
+        traits.conscientiousness = parseFloat(answers.q4) || 0.5; // Planning question
+        
+        // Agreeableness (cooperation)
+        traits.agreeableness = parseFloat(answers.q5) || 0.5; // Helping others question
+        
+        // Neuroticism (emotional stability)
+        traits.neuroticism = parseFloat(answers.q6) || 0.5; // Stress handling question
+        
+        // Additional traits from other questions
+        traits.optimism = parseFloat(answers.q7) || 0.5;
+        traits.thinking_style = answers.q8 || 'balanced';
+        traits.decision_style = answers.q9 || 'balanced';
+        traits.planning_style = answers.q10 || 'balanced';
+        
+    } catch (error) {
+        console.error('❌ Error parsing traits:', error);
+        // Use default values
+        traits.extraversion = 0.5;
+        traits.openness = 0.5;
+        traits.conscientiousness = 0.5;
+        traits.agreeableness = 0.5;
+        traits.neuroticism = 0.5;
+        traits.optimism = 0.5;
+        traits.thinking_style = 'balanced';
+        traits.decision_style = 'balanced';
+        traits.planning_style = 'balanced';
+    }
+    
+    console.log('📊 Built traits:', traits);
 
     // Build comprehensive personality profile
     const personalityProfile = {
-        name: answers.name,
-        gender: answers.gender,
+        name: answers.name.trim(),
+        gender: answers.gender || 'not-specified',
         bigFiveTraits: {
             extraversion: traits.extraversion,
             openness: traits.openness,
@@ -471,26 +666,69 @@ function buildPersonalityData(answers) {
         },
         socialMediaPermissions: answers.socialMediaPermissions || 'skipped',
         createdAt: new Date().toISOString(),
-        responses: answers // Include all raw answers
+        responses: answers // Include all raw answers for debugging
     };
 
+    console.log('✅ Built personality profile:', personalityProfile);
     return personalityProfile;
 }
 
-function animateLoading() {
-    const loadingBar = document.getElementById('loadingBar');
-    let progress = 0;
+// Add the missing showLoadingStep function
+function showLoadingStep() {
+    console.log('⏳ Showing loading step');
     
-    const interval = setInterval(() => {
-        progress += Math.random() * 15;
-        if (progress > 90) progress = 90; // Stop at 90% until API call completes
+    // Hide all other steps
+    document.querySelectorAll('.quiz-step').forEach(step => {
+        step.classList.remove('active');
+    });
+    
+    // Show loading step
+    const loadingStep = document.getElementById('loadingStep');
+    if (loadingStep) {
+        loadingStep.classList.add('active');
+        console.log('✅ Loading step is now active');
         
-        loadingBar.style.width = `${progress}%`;
-        
-        if (progress >= 90) {
-            clearInterval(interval);
+        // Reset and animate the loading bar
+        const loadingBar = document.getElementById('loadingBar');
+        if (loadingBar) {
+            loadingBar.style.width = '0%';
+            setTimeout(() => {
+                loadingBar.style.width = '90%';
+            }, 500);
         }
-    }, 200);
+    } else {
+        console.error('❌ Loading step element not found');
+    }
+    
+    // Hide progress bar
+    const progressContainer = document.querySelector('.progress-container');
+    if (progressContainer) {
+        progressContainer.style.display = 'none';
+    }
+}
+
+// Add the debugging function
+function debugStep12Buttons() {
+    console.log('🔍 Debugging Step 12 buttons...');
+    
+    const skipBtn = document.querySelector('.btn-skip');
+    const acceptBtn = document.querySelector('.btn-accept');
+    
+    console.log('Skip button found:', !!skipBtn);
+    console.log('Accept button found:', !!acceptBtn);
+    
+    if (skipBtn) {
+        console.log('Skip button onclick:', skipBtn.getAttribute('onclick'));
+    }
+    
+    if (acceptBtn) {
+        console.log('Accept button onclick:', acceptBtn.getAttribute('onclick'));
+    }
+    
+    // Test if functions exist
+    console.log('skipSocialMedia function exists:', typeof skipSocialMedia);
+    console.log('acceptPermissions function exists:', typeof acceptPermissions);
+    console.log('createTwin function exists:', typeof createTwin);
 }
 
 // Initialize when DOM is loaded
@@ -540,4 +778,35 @@ document.addEventListener('DOMContentLoaded', function() {
         originalOpenTwinWizard();
         setTimeout(updateBackButton, 100); // Small delay to ensure DOM is ready
     };
+
+    console.log('🚀 Index page loaded');
+    
+    // Add debugging
+    debugStep12Buttons();
+    
+    // Backup event listeners for step 12 buttons
+    setTimeout(() => {
+        const skipBtn = document.querySelector('.btn-skip');
+        const acceptBtn = document.querySelector('.btn-accept');
+        
+        if (skipBtn && !skipBtn.hasAttribute('data-listener-added')) {
+            skipBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('🖱️ Skip button clicked via event listener');
+                skipSocialMedia();
+            });
+            skipBtn.setAttribute('data-listener-added', 'true');
+        }
+        
+        if (acceptBtn && !acceptBtn.hasAttribute('data-listener-added')) {
+            acceptBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('🖱️ Accept button clicked via event listener');
+                acceptPermissions();
+            });
+            acceptBtn.setAttribute('data-listener-added', 'true');
+        }
+    }, 100);
+    
+    // ... rest of your existing DOMContentLoaded code ...
 });

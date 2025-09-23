@@ -1,17 +1,48 @@
 let currentTwin = null;
 let currentActiveMenu = null;
 
-// Initialize chat page
+// Add this function to handle twin selection from sidebar
+window.updateChatInterface = function(twin) {
+    console.log('🎨 Updating chat interface for:', twin.name);
+    
+    // Update welcome state
+    const welcomeTitle = document.getElementById('welcomeTitle');
+    const welcomeAvatarText = document.getElementById('welcomeAvatarText');
+    
+    if (welcomeTitle) {
+        welcomeTitle.textContent = `Chat with ${twin.name}`;
+    }
+    
+    if (welcomeAvatarText) {
+        // Use the twin's actual name for initials, not the ID
+        const initials = twin.name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+        welcomeAvatarText.textContent = initials;
+    }
+    
+    // Clear existing messages if switching twins
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        const messages = chatMessages.querySelectorAll('.message-group');
+        messages.forEach(msg => msg.remove());
+        
+        // Show welcome state
+        const welcomeState = document.getElementById('welcomeState');
+        if (welcomeState) {
+            welcomeState.style.display = 'block';
+        }
+    }
+    
+    console.log('✅ Chat interface updated - using twin name:', twin.name);
+};
+
+// Update the initialization function
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Chat page loaded');
     
     // Initialize sidebar functionality
     initializeSidebar();
     
-    // Load twin list
-    loadTwinList();
-    
-    // Check if we have twin data in localStorage first
+    // Check stored twin data first
     const storedTwinId = localStorage.getItem('twinId');
     const storedTwinName = localStorage.getItem('twinName');
     const personalityProfile = localStorage.getItem('personalityProfile');
@@ -22,28 +53,52 @@ document.addEventListener('DOMContentLoaded', async function() {
         hasPersonality: !!personalityProfile 
     });
     
-    if (storedTwinId && storedTwinName) {
-        // Use stored data (from personality quiz)
+    // Check if stored ID is valid MongoDB ObjectId format
+    const mongoIdPattern = /^[0-9a-fA-F]{24}$/;
+    const isValidStoredId = storedTwinId && mongoIdPattern.test(storedTwinId);
+    
+    if (isValidStoredId && storedTwinName) {
+        // Use valid stored data
         currentTwin = {
             _id: storedTwinId,
+            id: storedTwinId,
             name: storedTwinName,
             hasPersonality: !!personalityProfile
         };
         updateChatInterface(currentTwin);
-        console.log('✅ Using stored twin data:', currentTwin);
+        console.log('✅ Using valid stored twin data:', currentTwin);
     } else {
-        // Try to load from backend API
+        // Clear invalid data and try to load from backend
+        if (storedTwinId && !isValidStoredId) {
+            console.log('🧹 Clearing invalid twin ID:', storedTwinId);
+            clearOldTwinData();
+        }
+        
         try {
-            console.log('🔄 Loading twin info from API...');
-            const response = await fetch('/api/twin');
-            const twinInfo = await response.json();
+            console.log('🔄 Loading twin from backend...');
+            const response = await fetch('/api/get-first-twin');
+            const result = await response.json();
             
-            if (twinInfo.success && twinInfo.data) {
-                currentTwin = twinInfo.data;
+            if (result.success && result.twin) {
+                currentTwin = {
+                    _id: result.twin.id,
+                    id: result.twin.id,
+                    name: result.twin.name,
+                    hasPersonality: result.twin.hasPersonality
+                };
+                
+                // Store the valid twin data
+                localStorage.setItem('currentTwin', JSON.stringify(currentTwin));
+                localStorage.setItem('twinId', currentTwin.id);
+                localStorage.setItem('twinName', currentTwin.name);
+                if (result.twin.personality) {
+                    localStorage.setItem('personalityProfile', JSON.stringify(result.twin.personality));
+                }
+                
                 updateChatInterface(currentTwin);
-                console.log('✅ Chat interface updated with API twin info');
+                console.log('✅ Loaded and stored twin from backend:', currentTwin);
             } else {
-                throw new Error('No twin data received from API');
+                throw new Error('No twin data received from backend');
             }
         } catch (error) {
             console.log('❌ No twin found, showing create twin message');
@@ -367,25 +422,6 @@ function switchToTwin(twin) {
 
 // ========== CHAT FUNCTIONALITY ==========
 
-function updateChatInterface(twin) {
-    console.log('🎨 Updating chat interface for:', twin.name);
-    
-    // Update welcome state only
-    const welcomeTitle = document.getElementById('welcomeTitle');
-    const welcomeAvatarText = document.getElementById('welcomeAvatarText');
-    
-    if (welcomeTitle) {
-        welcomeTitle.textContent = `Chat with ${twin.name}`;
-    }
-    
-    if (welcomeAvatarText) {
-        const initials = twin.name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
-        welcomeAvatarText.textContent = initials;
-    }
-    
-    console.log('✅ Chat interface updated - sidebar only');
-}
-
 function setupChatHandlers() {
     const chatForm = document.getElementById('chatForm');
     const messageInput = document.getElementById('messageInput');
@@ -440,6 +476,7 @@ function setupChatHandlers() {
     });
 }
 
+// Update the sendMessage function around line 512
 async function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const message = messageInput.value.trim();
@@ -474,33 +511,16 @@ async function sendMessage() {
     try {
         console.log('🌐 Sending to backend:', currentTwin._id);
         
-        // Determine which endpoint to use
-        const personalityProfile = localStorage.getItem('personalityProfile');
-        let endpoint, requestBody;
+        // Use API config
+        const apiUrl = API_CONFIG.getEndpoint('CHAT');
+        console.log('🌐 API URL:', apiUrl);
         
-        console.log('🔍 Endpoint selection debug:');
-        console.log('- personalityProfile exists:', !!personalityProfile);
-        console.log('- currentTwin.hasPersonality:', currentTwin.hasPersonality);
-        console.log('- currentTwin._id:', currentTwin._id);
+        const requestBody = {
+            message: message,
+            twinId: currentTwin._id
+        };
         
-        // Always use personality chat if twin has an ID (since it was created via personality quiz)
-        if (currentTwin._id && currentTwin._id.length > 10) {
-            endpoint = '/api/chat-personality';
-            requestBody = {
-                message: message,
-                twinId: currentTwin._id
-            };
-            console.log('🧠 Using personality chat endpoint (forced)');
-        } else {
-            endpoint = '/api/chat';
-            requestBody = {
-                message: message,
-                twinName: currentTwin.name
-            };
-            console.log('💭 Using basic chat endpoint (fallback)');
-        }
-        
-        const response = await fetch(endpoint, {
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -704,3 +724,16 @@ function escapeHtml(text) {
 
 // Make loadTwinList available globally for index.js
 window.loadTwinList = loadTwinList;
+
+// Add this function to clear old data
+function clearOldTwinData() {
+    localStorage.removeItem('currentTwin');
+    localStorage.removeItem('twinId');
+    localStorage.removeItem('twinName');
+    localStorage.removeItem('personalityProfile');
+    localStorage.removeItem('userTwins');
+    console.log('🧹 Cleared all old twin data');
+}
+
+// Call this in the browser console or add it as a button temporarily
+window.clearOldTwinData = clearOldTwinData;

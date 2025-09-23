@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EchoMe X - Meet Your AI Twin</title>
+    <title>EchoMe X - Create Your AI Twin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/pages.css">
     <link rel="stylesheet" href="css/utilities.css">
-    <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="index.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/sidebar.css">
+    
+    <!-- Load API config FIRST -->
+    <script src="js/config.js"></script>
 </head>
 <body>
     <!-- Navbar will be loaded here dynamically -->
@@ -115,7 +116,7 @@
             <!-- Step 1: Gender Question -->
             <div class="quiz-step" id="step1">
                 <div class="question-container">
-                    <div class="question-number">Question 1</div>
+                    <div class="question-number">Basic Information</div>
                     <h2 class="question-title">What's your <span class="accent">gender</span>?</h2>
                     <p class="question-subtitle">This helps us personalize your AI twin's communication style</p>
                     <div class="options-container">
@@ -141,7 +142,7 @@
             <!-- Personality Questions (Steps 2-11) -->
             <div class="quiz-step" id="step2">
                 <div class="question-container">
-                    <div class="question-number">Question 2</div>
+                    <div class="question-number">Question 1</div>
                     <h2 class="question-title">At <span class="accent">social events</span>, do you usually talk to new people or stick with those you know?</h2>
                     <div class="options-container">
                         <button class="option-btn" data-value="extraverted" onclick="selectOption(this)">
@@ -161,8 +162,8 @@
 
             <div class="quiz-step" id="step3">
                 <div class="question-container">
-                    <div class="question-number">Question 3</div>
-                    <h2 class="question-title">Do you enjoy trying <span class="accent">new experiences</span> and ideas, or prefer familiar routines?</h2>
+                    <div class="question-number">Question 2</div>
+                    <h2 class="question-title">Do you enjoy trying new <span class="accent">experiences</span> and ideas, or prefer familiar routines?</h2>
                     <div class="options-container">
                         <button class="option-btn" data-value="open" onclick="selectOption(this)">
                             <span class="option-letter">A</span>
@@ -181,7 +182,7 @@
 
             <div class="quiz-step" id="step4">
                 <div class="question-container">
-                    <div class="question-number">Question 4</div>
+                    <div class="question-number">Question 3</div>
                     <h2 class="question-title">When <span class="accent">planning tasks</span>, do you prefer structured schedules or flexible approaches?</h2>
                     <div class="options-container">
                         <button class="option-btn" data-value="organized" onclick="selectOption(this)">
@@ -201,7 +202,7 @@
 
             <div class="quiz-step" id="step5">
                 <div class="question-container">
-                    <div class="question-number">Question 5</div>
+                    <div class="question-number">Question 4</div>
                     <h2 class="question-title">In <span class="accent">conflicts</span>, do you prioritize harmony with others or standing firm on your views?</h2>
                     <div class="options-container">
                         <button class="option-btn" data-value="agreeable" onclick="selectOption(this)">
@@ -221,7 +222,7 @@
 
             <div class="quiz-step" id="step6">
                 <div class="question-container">
-                    <div class="question-number">Question 6</div>
+                    <div class="question-number">Question 5</div>
                     <h2 class="question-title">Do you often feel <span class="accent">stressed or worried</span> about everyday issues?</h2>
                     <div class="options-container">
                         <button class="option-btn" data-value="sensitive" onclick="selectOption(this)">
@@ -241,7 +242,7 @@
 
             <div class="quiz-step" id="step7">
                 <div class="question-container">
-                    <div class="question-number">Question 7</div>
+                    <div class="question-number">Question 6</div>
                     <h2 class="question-title">I generally expect <span class="accent">positive things</span> from my life.</h2>
                     <div class="options-container">
                         <button class="option-btn" data-value="optimistic" onclick="selectOption(this)">
@@ -261,8 +262,8 @@
 
             <div class="quiz-step" id="step8">
                 <div class="question-container">
-                    <div class="question-number">Question 8</div>
-                    <h2 class="question-title">When solving problems, do you focus on <span class="accent">concrete facts</span> or imaginative possibilities?</h2>
+                    <div class="question-number">Question 7</div>
+                    <h2 class="question-title">When <span class="accent">solving problems</span>, do you <span class="accent">focus</span> on concrete facts or imaginative possibilities?</h2>
                     <div class="options-container">
                         <button class="option-btn" data-value="practical" onclick="selectOption(this)">
                             <span class="option-letter">A</span>
@@ -281,8 +282,8 @@
 
             <div class="quiz-step" id="step9">
                 <div class="question-container">
-                    <div class="question-number">Question 9</div>
-                    <h2 class="question-title">Do you more often let your <span class="accent">heart rule your head</span> or your head rule your heart?</h2>
+                    <div class="question-number">Question 8</div>
+                    <h2 class="question-title">Do you more often let your <span class="accent">heart rule your head</span> or your <span class="accent">head rule your heart</span>?</h2>
                     <div class="options-container">
                         <button class="option-btn" data-value="emotional" onclick="selectOption(this)">
                             <span class="option-letter">A</span>
@@ -301,8 +302,8 @@
 
             <div class="quiz-step" id="step10">
                 <div class="question-container">
-                    <div class="question-number">Question 10</div>
-                    <h2 class="question-title">Do you prefer to <span class="accent">keep options open</span> or commit to plans early?</h2>
+                    <div class="question-number">Question 9</div>
+                    <h2 class="question-title">Do you prefer to <span class="accent">keep options open</span> or <span class="accent">commit to plans early</span>?</h2>
                     <div class="options-container">
                         <button class="option-btn" data-value="flexible" onclick="selectOption(this)">
                             <span class="option-letter">A</span>
@@ -321,7 +322,7 @@
 
             <div class="quiz-step" id="step11">
                 <div class="question-container">
-                    <div class="question-number">Question 11</div>
+                    <div class="question-number">Question 10</div>
                     <h2 class="question-title">I believe most things in <span class="accent">life work out well</span>.</h2>
                     <div class="options-container">
                         <button class="option-btn" data-value="positive" onclick="selectOption(this)">

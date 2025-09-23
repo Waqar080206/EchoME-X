@@ -1,8 +1,7 @@
-// Updated mainController.js using MongoDB Twin model
-
+// Single imports at the top
 const Twin = require('../models/Twin');
 
-// Generate unique user ID
+// Generate unique user ID function
 function generateUserId() {
   return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
 }
@@ -61,100 +60,36 @@ function generatePersonalizedResponse(twin, userMessage) {
   return response;
 }
 
-// Replace the existing createTwin function - FINAL VERSION
-async function createTwin(twinData) {
-    try {
-        // Show loading step
-        document.querySelectorAll('.quiz-step').forEach(step => {
-            step.classList.remove('active');
-        });
-        document.getElementById('loadingStep').classList.add('active');
-        animateLoading();
-        
-        console.log('Creating personality twin with data:', twinData);
-        
-        // If twinData is undefined, collect it from the quiz
-        if (!twinData) {
-            console.log('No twinData provided, collecting from quiz...');
-            twinData = collectQuizData();
-            console.log('Collected quiz data:', twinData);
-        }
-        
-        // Validate we have the required data
-        if (!twinData || !twinData.name) {
-            throw new Error('Missing required twin data. Please complete the quiz.');
-        }
-        
-        const response = await fetch(`${API_BASE_URL}/api/create-personality-twin`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(twinData)
-        });
+// Test logging
+console.log('✅ Twin model loaded successfully');
+console.log('✅ generateUserId function loaded');
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ Twin creation successful:', result);
-        
-        // Complete the loading animation
-        const loadingBar = document.getElementById('loadingBar');
-        if (loadingBar) {
-            loadingBar.style.width = '100%';
-        }
-        
-        // Show success after a brief delay
-        setTimeout(() => {
-            showTwinCreationSuccess(result);
-        }, 1000);
-        
-        return result;
-        
-    } catch (error) {
-        console.error('❌ Error creating personality twin:', error);
-        
-        // Show error in the modal instead of alert
-        document.querySelectorAll('.quiz-step').forEach(step => {
-            step.classList.remove('active');
-        });
-        
-        // Show error step (you can create this similar to success step)
-        alert('Error creating twin: ' + error.message);
-        
-        // Go back to permissions step
-        currentStep = 12;
-        document.getElementById('step12').classList.add('active');
-        
-        throw error;
-    }
-}
-
-// Personality-based twin creation
+// Complete working createPersonalityTwin function
 exports.createPersonalityTwin = async (req, res) => {
   try {
+    console.log('🎯 createPersonalityTwin function called');
+    console.log('📦 Request body:', req.body);
+    
     const personalityData = req.body;
     
-    console.log('🧠 Creating personality-based twin in MongoDB:', personalityData.name);
-    console.log('📊 Personality data structure:', {
-      hasName: !!personalityData.name,
-      hasBigFive: !!personalityData.bigFiveTraits,
-      hasCommunication: !!personalityData.communicationStyle,
-      hasCognitive: !!personalityData.cognitiveStyle
-    });
-    
-    if (!personalityData.name || !personalityData.bigFiveTraits) {
+    // Validation
+    if (!personalityData || !personalityData.name || !personalityData.bigFiveTraits) {
+      console.log('❌ Validation failed');
       return res.status(400).json({
         success: false,
         error: 'Missing required personality data'
       });
     }
-
+    
+    console.log('✅ Validation passed');
+    
+    // Build persona
+    console.log('🔧 Building persona...');
     const personaText = buildPersonaFromPersonality(personalityData);
-    console.log('📝 Generated persona length:', personaText.length);
+    console.log('✅ Persona built, length:', personaText.length);
 
+    // Create twin
+    console.log('🔧 Creating Twin instance...');
     const twin = new Twin({
       name: personalityData.name.trim(),
       persona: personaText,
@@ -162,23 +97,38 @@ exports.createPersonalityTwin = async (req, res) => {
       personalityProfile: personalityData,
       conversationHistory: []
     });
-
+    
+    console.log('✅ Twin instance created');
+    
+    // Save to database
+    console.log('💾 Saving to database...');
     const savedTwin = await twin.save();
+    console.log('✅ Twin saved with ID:', savedTwin._id);
     
-    console.log(`✅ Personality twin saved to MongoDB: ${savedTwin.name} (ID: ${savedTwin._id})`);
-    
-    res.status(201).json({
+    // Send response
+    const response = {
       success: true,
-      message: 'Personality-based twin created successfully!',
+      message: 'Twin created successfully!',
       twinId: savedTwin._id.toString(),
-      data: { id: savedTwin._id.toString(), name: savedTwin.name, userId: savedTwin.userId }
-    });
+      twin: {
+        id: savedTwin._id.toString(),
+        name: savedTwin.name,
+        personality: savedTwin.personalityProfile
+      }
+    };
+    
+    console.log('📤 Sending response:', response);
+    res.status(201).json(response);
 
   } catch (error) {
-    console.error('Create personality twin error:', error);
-    res.status(500).json({  // ✅ Fixed the syntax error here
-      success: false, 
-      error: 'Failed to create personality twin',
+    console.error('💥 createPersonalityTwin ERROR:');
+    console.error('Type:', error.name);
+    console.error('Message:', error.message);
+    console.error('Stack:', error.stack);
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create twin',
       details: error.message
     });
   }
@@ -238,7 +188,7 @@ exports.chat = async (req, res) => {
   }
 };
 
-// Personality-based chat
+// Update the chatWithPersonality function around line 240
 exports.chatWithPersonality = async (req, res) => {
   try {
     const { message, twinId } = req.body;
@@ -255,7 +205,28 @@ exports.chatWithPersonality = async (req, res) => {
       });
     }
 
+    if (!twinId?.trim()) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Twin ID is required' 
+      });
+    }
+
     console.log('🔍 Looking for twin in MongoDB with ID:', twinId);
+    
+    // Validate if twinId is a valid MongoDB ObjectId
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(twinId)) {
+      console.log('❌ Invalid MongoDB ObjectId format:', twinId);
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid twin ID format',
+        debug: {
+          providedId: twinId,
+          isValidObjectId: false
+        }
+      });
+    }
     
     const twin = await Twin.findById(twinId);
     if (!twin) {

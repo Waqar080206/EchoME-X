@@ -141,11 +141,21 @@ body {
 }
 
 .logo-text {
-    color: #ffffff;
-    font-size: 1.5rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    background: var(--purple-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     font-family: var(--font-primary);
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+}
+
+/* Fallback for browsers that don't support background-clip */
+@supports not (-webkit-background-clip: text) {
+    .logo-text {
+        color: var(--purple-light);
+    }
 }
 
 .close-btn {
@@ -324,7 +334,10 @@ body {
     margin-top: 2px;
 }
 
+/* Add these styles for the twin menu dropdown */
+
 .twin-item-menu {
+    position: relative;
     opacity: 0;
     transition: opacity 0.2s ease;
 }
@@ -341,6 +354,9 @@ body {
     padding: 0.25rem;
     border-radius: 4px;
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .twin-menu-button:hover {
@@ -388,6 +404,7 @@ body {
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s ease;
+    text-align: left;
 }
 
 .twin-menu-option:hover {
@@ -398,12 +415,17 @@ body {
     color: #ff6b6b;
 }
 
+.twin-menu-option.delete:hover {
+    background: rgba(255, 107, 107, 0.1);
+}
+
 .twin-menu-option svg {
     width: 14px;
     height: 14px;
     stroke: currentColor;
     fill: none;
     stroke-width: 2;
+    flex-shrink: 0;
 }
 
 .twin-list-empty {
@@ -426,63 +448,70 @@ body {
 }
 
 /* Upgrade Section */
+
 .upgrade-section {
-    padding: 0 1rem;
-    margin-bottom: 1rem;
+    padding: 1rem;
 }
 
 .upgrade-btn {
     width: 100%;
-    padding: 1rem 1rem;
-    background: transparent;
-    border: 1px solid #444;
-    border-radius: 8px;
-    color: #fff;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 1rem;
-    font-weight: 500;
-    font-family: var(--font-primary);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.upgrade-btn:hover {
-    border-color: #666;
     background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    color: var(--pure-white);
+    font-family: var(--font-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
+/* Remove special styling from upgrade highlight */
 .upgrade-highlight {
-    color: #a855f7;
-    font-weight: 700;
-    font-size: 1.05rem;
+   
+    font-weight: inherit; /* Use the same weight as parent */
+    background: none; /* Remove any background */
+    padding: 0; /* Remove padding */
 }
+
+/* Add purple hover effect on entire button */
+.upgrade-btn:hover {
+    background: rgba(124, 58, 237, 0.1);
+    border-color: rgba(124, 58, 237, 0.3);
+    color: var(--purple-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.2);
+}
+
+/* Optional: Add a subtle icon or effect */
+.upgrade-btn::before {
+    content: "✨";
+    margin-right: 0.5rem;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.upgrade-btn:hover::before {
+    opacity: 1;
+}
+
 
 /* User Section */
 .user-section {
-    padding: 0 1rem;
-    border-top: 1px solid #333;
-    padding-top: 1rem;
-}
-
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border-radius: 8px;
-    cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .user-info:hover {
     background: rgba(255, 255, 255, 0.05);
 }
-
 .user-avatar {
-    width: 36px;
-    height: 36px;
+    width: 36px; /* Increased from 32px */
+    height: 36px; /* Increased from 32px */
     background: linear-gradient(135deg, #22c55e, #16a34a);
     border-radius: 50%;
     display: flex;
@@ -490,14 +519,14 @@ body {
     justify-content: center;
     color: white;
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 1rem; /* Increased from 0.875rem */
     flex-shrink: 0;
 }
 
 .username {
     color: #fff;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1rem; /* Increased from 0.9rem */
+    font-weight: 600; /* Increased font weight */
     flex: 1;
 }
 
@@ -590,4 +619,28 @@ body {
     .sidebar-overlay {
         display: none;
     }
+}
+
+/* Add these at the end of the file to override any conflicts */
+
+/* Force consistent user styling across all pages */
+body .sidebar .user-section .user-info .user-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+}
+
+body .sidebar .user-section .user-info .username {
+    color: #ffffff !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    font-family: var(--font-primary) !important;
+}
+
+/* Ensure hover effects work consistently */
+body .sidebar .user-section .user-info:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
 }

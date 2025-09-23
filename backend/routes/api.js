@@ -2,6 +2,47 @@ const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/mainController');
 
+// Add this simple test route at the top of your routes
+router.post('/test-simple-create', async (req, res) => {
+  try {
+    console.log('🧪 Simple test create endpoint hit');
+    console.log('📦 Request body received:', req.body);
+    
+    // Test if we can access the Twin model
+    const Twin = require('../models/Twin');
+    console.log('✅ Twin model loaded successfully');
+    
+    // Test basic twin creation with minimal data
+    const testTwin = new Twin({
+      name: 'TestTwin',
+      persona: 'I am a test twin with a simple personality for testing purposes.',
+      userId: 'test_user_123',
+      personalityProfile: { test: true },
+      conversationHistory: []
+    });
+    
+    console.log('🔧 Test twin object created');
+    
+    const savedTwin = await testTwin.save();
+    console.log('✅ Test twin saved successfully:', savedTwin._id);
+    
+    res.json({
+      success: true,
+      message: 'Simple test twin created successfully',
+      twinId: savedTwin._id.toString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Simple test error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Simple test failed',
+      details: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 // Health check
 router.get('/health', (req, res) => {
   res.json({ 
@@ -11,11 +52,12 @@ router.get('/health', (req, res) => {
 });
 
 // Twin routes
-router.post('/train', controller.createTwin);
+/*router.post('/train', controller.createTwin);*/
 router.get('/twin', controller.getTwin);
 
 // Chat routes
 router.post('/chat', controller.chat);
+router.post('/chat-with-personality', controller.chatWithPersonality); // ✅ Add this line
 
 // Analytics routes
 router.get('/analytics', controller.getAnalytics);
@@ -27,19 +69,10 @@ router.post('/chat-personality', controller.chatWithPersonality);
 // Replace the debug route
 router.get('/debug-twins', async (req, res) => {
   try {
-    const controller = require('../controllers/mainController');
-    const debugInfo = await controller.getDebugInfo();
-    
-    res.json({
-      ...debugInfo,
-      message: 'Debug info retrieved successfully'
-    });
+    const result = await controller.getDebugInfo();
+    res.json({ success: true, ...result });
   } catch (error) {
-    console.error('Debug route error:', error);
-    res.status(500).json({
-      error: 'Failed to get debug info',
-      details: error.message
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -215,6 +248,65 @@ router.delete('/twin/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to delete twin'
+    });
+  }
+});
+
+// Add this debug route to check environment variables
+router.get('/debug-env', (req, res) => {
+  console.log('🔍 Environment Debug:');
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log('GROQ_API_KEY exists:', !!process.env.GROQ_API_KEY);
+  console.log('GROQ_API_KEY first 10 chars:', process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.substring(0, 10) + '...' : 'NOT SET');
+  console.log('All env keys:', Object.keys(process.env).filter(key => key.includes('GROQ')));
+  
+  res.json({
+    success: true,
+    env: {
+      NODE_ENV: process.env.NODE_ENV,
+      hasGroqKey: !!process.env.GROQ_API_KEY,
+      groqKeyPreview: process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.substring(0, 10) + '...' : 'NOT SET'
+    }
+  });
+});
+
+// Add a simple test route
+router.post('/test-create', (req, res) => {
+  console.log('🧪 Test route hit with body:', req.body);
+  res.json({
+    success: true,
+    message: 'Test route working',
+    receivedData: req.body
+  });
+});
+
+// Add this database test route
+router.get('/test-db', async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    console.log('🔍 Testing database connection...');
+    console.log('MongoDB connection state:', mongoose.connection.readyState);
+    
+    if (mongoose.connection.readyState !== 1) {
+      throw new Error('Database not connected');
+    }
+    
+    const Twin = require('../models/Twin');
+    const count = await Twin.countDocuments();
+    
+    res.json({
+      success: true,
+      message: 'Database connection working',
+      connectionState: mongoose.connection.readyState,
+      twinCount: count
+    });
+    
+  } catch (error) {
+    console.error('❌ Database test error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Database test failed',
+      details: error.message
     });
   }
 });
