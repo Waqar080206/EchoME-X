@@ -69,10 +69,38 @@ router.post('/chat-personality', controller.chatWithPersonality);
 // Replace the debug route
 router.get('/debug-twins', async (req, res) => {
   try {
+<<<<<<< HEAD
     const result = await controller.getDebugInfo();
     res.json({ success: true, ...result });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
+=======
+    const Twin = require('../models/Twin');
+    const twins = await Twin.find({}, '_id name userId personalityProfile').limit(10);
+    
+    console.log('🔍 Debug: Found twins in database:', twins.length);
+    twins.forEach(twin => {
+      console.log(`- Twin: ${twin.name} (ID: ${twin._id}, UserID: ${twin.userId})`);
+    });
+    
+    res.json({
+      success: true,
+      message: `Found ${twins.length} twins in database`,
+      twins: twins.map(twin => ({
+        id: twin._id.toString(),
+        name: twin.name,
+        userId: twin.userId,
+        hasPersonality: !!twin.personalityProfile
+      }))
+    });
+  } catch (error) {
+    console.error('Debug twins error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to debug twins',
+      details: error.message
+    });
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
   }
 });
 
@@ -270,6 +298,7 @@ router.get('/debug-env', (req, res) => {
   });
 });
 
+<<<<<<< HEAD
 // Add a simple test route
 router.post('/test-create', (req, res) => {
   console.log('🧪 Test route hit with body:', req.body);
@@ -311,4 +340,6 @@ router.get('/test-db', async (req, res) => {
   }
 });
 
+=======
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
 module.exports = router;

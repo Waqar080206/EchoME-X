@@ -55,6 +55,11 @@ body::before {
     z-index: -1;
 }
 
+/* Ensure modal styles work with existing styles */
+body.modal-open {
+    overflow: hidden !important;
+}
+
 /* Header Styles */
 .header {
     display: none;
@@ -150,6 +155,8 @@ body::before {
     min-height: 100vh;
     display: flex;
     align-items: center;
+    position: relative;
+    z-index: 1;
 }
 
 .hero-container {
@@ -214,6 +221,8 @@ body::before {
     text-decoration: none;
     font-family: var(--font-primary);
     box-shadow: 0 8px 32px rgba(124, 58, 237, 0.3);
+    position: relative;
+    z-index: 2;
 }
 
 .hero-cta:hover {
@@ -353,6 +362,8 @@ body::before {
     transition: all 0.3s ease;
     font-family: var(--font-primary);
     box-shadow: 0 8px 32px rgba(124, 58, 237, 0.3);
+    position: relative;
+    z-index: 2;
 }
 
 .final-cta-button:hover {
@@ -370,14 +381,14 @@ body::before {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(20px);
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
@@ -389,18 +400,25 @@ body::before {
 }
 
 .modal-content {
-    background: var(--deep-black);
-    border: 1px solid rgba(124, 58, 237, 0.3);
+    background: var(--dark-bg);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
     width: 90%;
     max-width: 600px;
-    max-height: 95vh;
-    min-height: 500px;
+    max-height: 90vh;
     overflow-y: auto;
     position: relative;
-    box-shadow: 0 20px 60px rgba(124, 58, 237, 0.2);
-    display: flex;
-    flex-direction: column;
+    animation: modalSlideIn 0.3s ease;
+}
+
+/* Modal specific overrides for this page */
+#twinModal {
+    font-family: 'Inter', sans-serif !important;
+}
+
+#twinModal .modal-content {
+    background: #0a0a0a !important;
+    border: 1px solid rgba(139, 92, 246, 0.2) !important;
 }
 
 /* Progress Bar */
@@ -423,11 +441,14 @@ body::before {
 /* Wizard Steps */
 .wizard-step {
     display: none;
+    padding: 2rem;
+    position: relative;
 }
 
 .wizard-step.active {
-    display: block;
-    animation: step-fade-in 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.3s ease;
 }
 
 @keyframes step-fade-in {
@@ -1016,6 +1037,7 @@ body::before {
     stroke-width: 2;
     width: 22px; /* Increased from 20px */
     height: 22px; /* Increased from 20px */
+<<<<<<< HEAD
 }
 
 /* Quiz Modal Styles */
@@ -1930,4 +1952,6 @@ body::before {
 .btn-primary:hover, .btn-secondary:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+=======
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
 }

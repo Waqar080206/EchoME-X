@@ -13,6 +13,7 @@ const PORT = process.env.PORT || 3001;
 const isProduction = process.env.NODE_ENV === 'production';
 console.log(`🌍 Environment: ${isProduction ? 'Production' : 'Development'}`);
 
+<<<<<<< HEAD
 // CORS configuration for both local and production
 const corsOptions = {
   origin: function (origin, callback) {
@@ -53,6 +54,21 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+=======
+// Middleware
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5500',
+    'https://echo-me-x.vercel.app',
+    'https://www.echo-me-x.vercel.app'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -85,11 +101,12 @@ app.get('/', (req, res) => {
   });
 });
 
+// Add health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
-    status: 'ok', 
-    environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString() 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
@@ -100,6 +117,7 @@ app.get('/test', (req, res) => {
   });
 });
 
+<<<<<<< HEAD
 // Add this BEFORE app.use('/api', apiRoutes) in server.js
 app.use('/api', (req, res, next) => {
   console.log('\n🔍 === INCOMING API REQUEST ===');
@@ -114,6 +132,11 @@ app.use('/api', (req, res, next) => {
 // API Routes
 app.use('/api', apiRoutes);
 
+=======
+// API Routes
+app.use('/api', apiRoutes);
+
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
 // Remove or comment out the duplicate endpoints below since they're handled by routes/api.js
 /*
 app.post('/api/chat-with-personality', async (req, res) => {

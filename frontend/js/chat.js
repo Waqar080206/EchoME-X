@@ -1,6 +1,11 @@
 let currentTwin = null;
 let currentActiveMenu = null;
 
+<<<<<<< HEAD
+=======
+const API_BASE_URL = 'https://echome-x.onrender.com';
+
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
 // Add this function to handle twin selection from sidebar
 window.updateChatInterface = function(twin) {
     console.log('🎨 Updating chat interface for:', twin.name);
@@ -42,6 +47,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize sidebar functionality
     initializeSidebar();
     
+<<<<<<< HEAD
     // Check stored twin data first
     const storedTwinId = localStorage.getItem('twinId');
     const storedTwinName = localStorage.getItem('twinName');
@@ -105,6 +111,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             showCreateTwinState();
         }
     }
+=======
+    // Load twin data
+    loadTwinData();
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
     
     // Setup form handlers
     setupChatHandlers();
@@ -476,39 +486,83 @@ function setupChatHandlers() {
     });
 }
 
+<<<<<<< HEAD
 // Update the sendMessage function around line 512
+=======
+// Update loadTwinData function
+function loadTwinData() {
+    console.log('📱 Loading twin data...');
+    
+    try {
+        const storedTwin = localStorage.getItem('currentTwin');
+        const storedTwinId = localStorage.getItem('twinId');
+        const storedTwinName = localStorage.getItem('twinName');
+        
+        console.log('📦 Storage check:', { 
+            storedTwin: !!storedTwin, 
+            storedTwinId, 
+            storedTwinName 
+        });
+        
+        if (storedTwin) {
+            currentTwin = JSON.parse(storedTwin);
+            console.log('✅ Loaded twin from storage:', currentTwin);
+        } else if (storedTwinId && storedTwinName) {
+            currentTwin = {
+                id: storedTwinId,
+                _id: storedTwinId,
+                name: storedTwinName,
+                hasPersonality: true
+            };
+            console.log('✅ Created twin object from stored data:', currentTwin);
+        } else {
+            console.log('❌ No twin data found, redirecting...');
+            showNoTwinState();
+            return;
+        }
+        
+        // Update UI with twin info
+        updateTwinInfo();
+        hideWelcomeState();
+        
+    } catch (error) {
+        console.error('❌ Error loading twin data:', error);
+        showNoTwinState();
+    }
+}
+
+// Fix sendMessage function
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
 async function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const message = messageInput.value.trim();
     
-    console.log('📤 sendMessage called:', { message, currentTwin });
-    
     if (!message) {
-        console.log('❌ No message to send');
+        console.log('❌ Empty message');
         return;
     }
     
-    if (!currentTwin) {
-        console.log('❌ No current twin');
-        alert('No AI twin found. Please create one first.');
+    if (!currentTwin || !currentTwin._id) {
+        console.log('❌ No twin data available');
+        alert('No twin found. Please create your twin first.');
+        window.location.href = 'index.html';
         return;
     }
     
-    // Hide welcome state when first message is sent
-    hideWelcomeState();
+    console.log('📤 Sending message:', message, 'to twin ID:', currentTwin._id);
     
-    // Add user message to chat
-    addMessage('user', message);
+    // Add user message
+    addMessageToChat(message, 'user');
     messageInput.value = '';
-    
-    // Reset textarea height and button state
     messageInput.style.height = 'auto';
-    document.getElementById('sendButton').disabled = true;
     
-    // Show typing indicator
+    // Show loading state
+    const sendButton = document.getElementById('sendButton');
+    sendButton.disabled = true;
     showTypingIndicator();
     
     try {
+<<<<<<< HEAD
         console.log('🌐 Sending to backend:', currentTwin._id);
         
         // Use API config
@@ -521,75 +575,111 @@ async function sendMessage() {
         };
         
         const response = await fetch(apiUrl, {
+=======
+        const response = await fetch(`${API_BASE_URL}/api/chat-personality`, {
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify({ 
+                message: message,
+                twinId: currentTwin._id
+            })
         });
         
-        console.log('📡 Response status:', response.status);
+        console.log('🌐 API Response status:', response.status);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            console.error('❌ API Error:', response.status, errorText);
+            throw new Error(`API Error: ${response.status}`);
         }
         
-        const result = await response.json();
-        console.log('📬 Received response:', result);
+        const data = await response.json();
+        console.log('✅ API Response data:', data);
         
-        if (result.success) {
-            hideTypingIndicator();
-            // Handle different response formats
-            let responseText;
-            if (result.response) {
-                responseText = result.response; // For personality chat
-            } else if (result.data && result.data.message) {
-                responseText = result.data.message; // For basic chat
-            } else {
-                responseText = 'Sorry, I received an empty response.';
-            }
-            addMessage('assistant', responseText);
+        hideTypingIndicator();
+        
+        if (data.success && data.response) {
+            addMessageToChat(data.response, 'ai');
         } else {
-            throw new Error(result.error || 'Failed to get response');
+            throw new Error(data.error || 'Invalid response format');
         }
         
     } catch (error) {
         console.error('❌ Chat error:', error);
         hideTypingIndicator();
-        addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+        
+        let errorMessage = 'Sorry, I\'m having trouble connecting right now. ';
+        
+        if (error.message.includes('404')) {
+            errorMessage += 'The chat service is not available.';
+        } else if (error.message.includes('500')) {
+            errorMessage += 'There\'s a server issue. Please try again in a moment.';
+        } else {
+            errorMessage += 'Please check your connection and try again.';
+        }
+        
+        addMessageToChat(errorMessage, 'ai');
+    } finally {
+        sendButton.disabled = false;
     }
-    
-    scrollToBottom();
 }
 
-// ========== UI HELPER FUNCTIONS ==========
-
-function addMessage(role, content) {
+function showNoTwinState() {
     const chatMessages = document.getElementById('chatMessages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message-group ${role}`;
+    chatMessages.innerHTML = `
+        <div style="text-align: center; padding: 3rem 2rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🤖</div>
+            <h3 style="color: #8B5CF6; margin-bottom: 1rem;">No AI Twin Found</h3>
+            <p style="color: #6B7280; margin-bottom: 2rem;">
+                You need to create an AI twin first before you can start chatting.
+            </p>
+            <button onclick="window.location.href='index.html'" style="
+                background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+                color: white;
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+            ">
+                Create Your Twin
+            </button>
+        </div>
+    `;
+}
+
+// Update the addMessageToChat function
+function addMessageToChat(message, role) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageGroup = document.createElement('div');
+    messageGroup.className = `message-group ${role}`;
     
-    let avatarLetter;
+    // Hide welcome state when first message is sent
     if (role === 'user') {
-        avatarLetter = 'Y'; // You
-    } else {
-        avatarLetter = currentTwin ? currentTwin.name.charAt(0).toUpperCase() : 'A';
+        hideWelcomeState();
     }
     
-    messageDiv.innerHTML = `
+    const avatarLetter = role === 'user' ? 'U' : (currentTwin ? currentTwin.name.charAt(0).toUpperCase() : 'A');
+    
+    messageGroup.innerHTML = `
         <div class="message-avatar">
             <div class="avatar ${role}">
                 <span>${avatarLetter}</span>
             </div>
         </div>
         <div class="message-content">
-            <div class="message-text">${escapeHtml(content)}</div>
+            <div class="message-text">${escapeHtml(message)}</div>
         </div>
     `;
     
-    chatMessages.appendChild(messageDiv);
+    chatMessages.appendChild(messageGroup);
     scrollToBottom();
 }
+
+// ========== UI HELPER FUNCTIONS ==========
 
 function showTypingIndicator() {
     const chatMessages = document.getElementById('chatMessages');

@@ -10,6 +10,11 @@
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/pages.css">
     <link rel="stylesheet" href="css/utilities.css">
+<<<<<<< HEAD
+=======
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/modal.css">
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="css/sidebar.css">
     
@@ -105,10 +110,32 @@
                 <div class="question-container">
                     <h2 class="question-title">Let's start with your <span class="accent">name</span></h2>
                     <p class="question-subtitle">What should we call your AI twin?</p>
-                    <input type="text" class="name-input" id="twinName" placeholder="Enter your name" maxlength="50">
+                    <input type="text" class="name-input" id="twinName" placeholder="Enter your name" maxlength="50" autocomplete="given-name">
                     <div class="step-buttons">
                         <button class="btn-cancel" onclick="closeTwinWizard()">Cancel</button>
-                        <button class="btn-continue" onclick="nextQuestion()" disabled>Continue</button>
+                        <button 
+                            class="continue-btn-modal" 
+                            id="continueButton" 
+                            onclick="nextQuestion()" 
+                            disabled 
+                            style="
+                                background: linear-gradient(135deg, #8B5CF6, #A855F7);
+                                color: white;
+                                padding: 12px 24px;
+                                border: none;
+                                border-radius: 8px;
+                                font-weight: 600;
+                                cursor: pointer;
+                                font-size: 0.875rem;
+                                opacity: 0.5;
+                                transition: all 0.3s ease;
+                            "
+                        >
+                            Continue
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9 18l6-6-6-6"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -162,7 +189,11 @@
 
             <div class="quiz-step" id="step3">
                 <div class="question-container">
+<<<<<<< HEAD
                     <div class="question-number">Question 2</div>
+=======
+                    <div class="question-number">Question 3</div>
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
                     <h2 class="question-title">Do you enjoy trying new <span class="accent">experiences</span> and ideas, or prefer familiar routines?</h2>
                     <div class="options-container">
                         <button class="option-btn" data-value="open" onclick="selectOption(this)">
@@ -262,7 +293,11 @@
 
             <div class="quiz-step" id="step8">
                 <div class="question-container">
+<<<<<<< HEAD
                     <div class="question-number">Question 7</div>
+=======
+                    <div class="question-number">Question 8</div>
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
                     <h2 class="question-title">When <span class="accent">solving problems</span>, do you <span class="accent">focus</span> on concrete facts or imaginative possibilities?</h2>
                     <div class="options-container">
                         <button class="option-btn" data-value="practical" onclick="selectOption(this)">
@@ -282,7 +317,11 @@
 
             <div class="quiz-step" id="step9">
                 <div class="question-container">
+<<<<<<< HEAD
                     <div class="question-number">Question 8</div>
+=======
+                    <div class="question-number">Question 9</div>
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
                     <h2 class="question-title">Do you more often let your <span class="accent">heart rule your head</span> or your <span class="accent">head rule your heart</span>?</h2>
                     <div class="options-container">
                         <button class="option-btn" data-value="emotional" onclick="selectOption(this)">
@@ -302,7 +341,11 @@
 
             <div class="quiz-step" id="step10">
                 <div class="question-container">
+<<<<<<< HEAD
                     <div class="question-number">Question 9</div>
+=======
+                    <div class="question-number">Question 10</div>
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
                     <h2 class="question-title">Do you prefer to <span class="accent">keep options open</span> or <span class="accent">commit to plans early</span>?</h2>
                     <div class="options-container">
                         <button class="option-btn" data-value="flexible" onclick="selectOption(this)">
@@ -476,10 +519,329 @@
         </div>
     </div>
 
-    <!-- Load navbar first -->
-    <script src="sidebar.js"></script>
+    <!-- Load scripts in correct order -->
     <script src="utils.js"></script>
-    <script src="js/api.js"></script>
     <script src="index.js"></script>
+    <script src="sidebar.js"></script>
+
+    <script>
+// Safe emergency version that doesn't depend on other functions
+window.openTwinWizard = function() {
+    console.log('🚀 Opening twin wizard (safe emergency version)');
+    
+    const modal = document.getElementById('twinModal');
+    if (!modal) {
+        console.error('❌ Modal not found');
+        return;
+    }
+    
+    // Show modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
+    
+    // Reset to first step safely
+    document.querySelectorAll('.quiz-step').forEach((step, index) => {
+        if (index === 0) {
+            step.classList.add('active');
+        } else {
+            step.classList.remove('active');
+        }
+    });
+    
+    // Show progress bar if it exists
+    const progressContainer = document.querySelector('.progress-container');
+    if (progressContainer) {
+        progressContainer.style.display = 'block';
+    }
+    
+    // Set initial progress
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    if (progressFill) progressFill.style.width = '0%';
+    if (progressText) progressText.textContent = 'Getting Started';
+    
+    // Initialize name input after a delay to ensure DOM is ready
+    setTimeout(() => {
+        initializeNameInputSafe();
+    }, 200);
+};
+
+// Safe name input initialization
+function initializeNameInputSafe() {
+    console.log('🔧 Safe name input initialization');
+    
+    const nameInput = document.getElementById('twinName');
+    const continueBtn = document.querySelector('.btn-continue, .continue-btn-modal, #continueButton');
+    
+    if (!nameInput || !continueBtn) {
+        console.error('❌ Elements not found for safe init');
+        return;
+    }
+    
+    // Clear and setup
+    nameInput.value = '';
+    continueBtn.disabled = true;
+    
+    // Remove existing listeners
+    nameInput.removeEventListener('input', handleNameInputSafe);
+    nameInput.removeEventListener('keydown', handleNameKeydownSafe);
+    
+    // Add new listeners
+    nameInput.addEventListener('input', handleNameInputSafe);
+    nameInput.addEventListener('keydown', handleNameKeydownSafe);
+    
+    // Focus
+    nameInput.focus();
+    
+    console.log('✅ Safe name input initialized');
+}
+
+function handleNameInputSafe(event) {
+    const value = event.target.value.trim();
+    const hasName = value.length > 0;
+    const continueBtn = document.querySelector('.btn-continue, .continue-btn-modal, #continueButton');
+    
+    console.log('📝 Safe name input:', value, 'Valid:', hasName);
+    
+    if (continueBtn) {
+        continueBtn.disabled = !hasName;
+        continueBtn.style.opacity = hasName ? '1' : '0.5';
+        continueBtn.style.cursor = hasName ? 'pointer' : 'not-allowed';
+    }
+}
+
+function handleNameKeydownSafe(event) {
+    if (event.key === 'Enter') {
+        const continueBtn = document.querySelector('.btn-continue, .continue-btn-modal, #continueButton');
+        if (continueBtn && !continueBtn.disabled) {
+            event.preventDefault();
+            // Use the main nextQuestion if available, otherwise call safe version
+            if (typeof nextQuestion === 'function') {
+                nextQuestion();
+            } else {
+                nextQuestionSafe();
+            }
+        }
+    }
+}
+
+function nextQuestionSafe() {
+    console.log('➡️ Safe next question');
+    
+    const nameInput = document.getElementById('twinName');
+    const name = nameInput ? nameInput.value.trim() : '';
+    
+    if (!name || name.length < 2) {
+        alert('Please enter a valid name (at least 2 characters)');
+        if (nameInput) nameInput.focus();
+        return;
+    }
+    
+    // Store the name
+    if (typeof answers !== 'undefined') {
+        answers.name = name;
+    } else {
+        window.tempAnswers = { name: name };
+    }
+    
+    console.log('✅ Name saved safely:', name);
+    
+    // Hide first step, show second step
+    const step0 = document.getElementById('step0');
+    const step1 = document.getElementById('step1');
+    
+    if (step0) step0.classList.remove('active');
+    if (step1) step1.classList.add('active');
+    
+    // Update progress
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    if (progressFill) progressFill.style.width = '9%'; // 1/11 questions
+    if (progressText) progressText.textContent = 'Question 1 of 11';
+    
+    console.log('✅ Advanced to question 1 safely');
+}
+
+// Make safe functions available
+window.initializeNameInputSafe = initializeNameInputSafe;
+window.nextQuestionSafe = nextQuestionSafe;
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM loaded - setting up safe handlers');
+    
+    // Override any existing continue button click handlers
+    const continueBtn = document.querySelector('.btn-continue, .continue-btn-modal, #continueButton');
+    if (continueBtn) {
+        continueBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Continue button clicked (safe handler)');
+            
+            if (!this.disabled) {
+                if (typeof nextQuestion === 'function') {
+                    nextQuestion();
+                } else {
+                    nextQuestionSafe();
+                }
+            }
+        });
+    }
+    
+    // Setup modal close handlers
+    const modal = document.getElementById('twinModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                document.body.classList.remove('modal-open');
+            }
+        });
+    }
+});
+
+// Emergency global functions - available immediately
+window.selectOption = function(button) {
+    console.log('🎯 Emergency selectOption called');
+    
+    if (!button || !button.dataset || !button.dataset.value) {
+        console.error('❌ Invalid button');
+        return;
+    }
+    
+    // Get current step from global or default to 1
+    const step = window.currentStep || 1;
+    
+    // Remove selection from all buttons in current step
+    const stepElement = document.getElementById(`step${step}`);
+    if (stepElement) {
+        stepElement.querySelectorAll('.option-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+    }
+    
+    // Select this button
+    button.classList.add('selected');
+    
+    // Store answer if answers object exists
+    if (window.answers) {
+        window.answers[`question${step}`] = button.dataset.value;
+    }
+    
+    console.log('📝 Emergency saved:', button.dataset.value);
+    
+    // Try to advance
+    setTimeout(() => {
+        if (typeof nextQuestion === 'function') {
+            nextQuestion();
+        } else {
+            console.log('🔄 nextQuestion not available, trying emergency advance');
+            emergencyAdvance();
+        }
+    }, 500);
+};
+
+window.previousQuestion = function() {
+    console.log('⬅️ Emergency previousQuestion called');
+    
+    const currentStep = window.currentStep || 1;
+    
+    if (currentStep > 0) {
+        // Hide current step
+        const current = document.getElementById(`step${currentStep}`);
+        if (current) current.classList.remove('active');
+        
+        // Show previous step
+        const prev = currentStep - 1;
+        const prevElement = document.getElementById(`step${prev}`);
+        if (prevElement) prevElement.classList.add('active');
+        
+        // Update global step
+        window.currentStep = prev;
+        
+        console.log('✅ Emergency moved back to step:', prev);
+    }
+};
+
+function emergencyAdvance() {
+    const currentStep = window.currentStep || 1;
+    const nextStep = currentStep + 1;
+    
+    // Hide current
+    const current = document.getElementById(`step${currentStep}`);
+    if (current) current.classList.remove('active');
+    
+    // Show next
+    const next = document.getElementById(`step${nextStep}`);
+    if (next) {
+        next.classList.add('active');
+        window.currentStep = nextStep;
+        console.log('🚀 Emergency advanced to step:', nextStep);
+    }
+}
+
+// Safe emergency version of openTwinWizard
+window.openTwinWizard = function() {
+    console.log('🚀 Emergency openTwinWizard called');
+    
+    const modal = document.getElementById('twinModal');
+    if (!modal) {
+        console.error('❌ Modal not found');
+        return;
+    }
+    
+    // Show modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
+    
+    // Reset to first step
+    document.querySelectorAll('.quiz-step').forEach((step, index) => {
+        if (index === 0) {
+            step.classList.add('active');
+        } else {
+            step.classList.remove('active');
+        }
+    });
+    
+    // Set initial progress
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    if (progressFill) progressFill.style.width = '0%';
+    if (progressText) progressText.textContent = 'Getting Started';
+    
+    // Initialize name input
+    setTimeout(() => {
+        const nameInput = document.getElementById('twinName');
+        const continueBtn = document.querySelector('.btn-continue, .continue-btn-modal, #continueButton');
+        
+        if (nameInput && continueBtn) {
+            nameInput.value = '';
+            continueBtn.disabled = true;
+            
+            nameInput.oninput = function() {
+                const hasName = this.value.trim().length > 0;
+                continueBtn.disabled = !hasName;
+                continueBtn.style.opacity = hasName ? '1' : '0.5';
+            };
+            
+            nameInput.focus();
+        }
+    }, 200);
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM loaded - emergency functions ready');
+    
+    // Ensure currentStep is set
+    window.currentStep = window.currentStep || 0;
+    
+    // Ensure answers object exists
+    window.answers = window.answers || {};
+    
+    console.log('✅ Emergency system initialized');
+});
+</script>
 </body>
 </html>

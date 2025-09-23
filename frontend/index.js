@@ -1,32 +1,135 @@
 let currentStep = 0;
-const totalSteps = 13; // 1 name + 1 gender + 10 questions + 1 permissions
+const totalSteps = 13;
 const answers = {};
 
-function openTwinWizard() {
-    document.getElementById('twinModal').classList.add('active');
-    document.body.style.overflow = 'hidden';
-    updateProgress();
-}
+const API_BASE_URL = 'https://echome-x.onrender.com';
 
-function closeTwinWizard() {
-    document.getElementById('twinModal').classList.remove('active');
-    document.body.style.overflow = '';
-    resetQuiz();
-}
-
-function resetQuiz() {
-    currentStep = 0;
-    Object.keys(answers).forEach(key => delete answers[key]);
+// Make functions available IMMEDIATELY (before any other code)
+window.selectOption = function(button) {
+    console.log('🎯 Option selected (emergency):', button.dataset.value);
     
-    // Reset all steps
-    document.querySelectorAll('.quiz-step').forEach(step => {
-        step.classList.remove('active', 'slide-out-left', 'slide-in-right', 'slide-out-right', 'slide-in-left');
+    // Remove selected class from all buttons in current step
+    const currentStepElement = document.getElementById(`step${currentStep}`);
+    if (currentStepElement) {
+        const allButtons = currentStepElement.querySelectorAll('.option-btn');
+        allButtons.forEach(btn => btn.classList.remove('selected'));
+    }
+    
+    // Add selected class to clicked button
+    button.classList.add('selected');
+    
+    // Store the answer
+    const questionKey = `question${currentStep}`;
+    answers[questionKey] = button.dataset.value;
+    
+    console.log('📝 Saved answer:', questionKey, '=', button.dataset.value);
+    
+    // Auto-advance after short delay
+    setTimeout(() => {
+        if (typeof nextQuestion === 'function') {
+            nextQuestion();
+        } else {
+            console.error('nextQuestion function not available');
+        }
+    }, 500);
+};
+
+window.previousQuestion = function() {
+    console.log('⬅️ Previous question (emergency)');
+    
+    if (currentStep > 0) {
+        // Hide current step
+        const currentStepElement = document.getElementById(`step${currentStep}`);
+        if (currentStepElement) {
+            currentStepElement.classList.remove('active');
+        }
+        
+        // Show previous step
+        currentStep--;
+        const prevStepElement = document.getElementById(`step${currentStep}`);
+        if (prevStepElement) {
+            prevStepElement.classList.add('active');
+        }
+        
+        // Update progress
+        if (typeof updateProgress === 'function') {
+            updateProgress();
+        }
+        
+        // Update back button
+        if (typeof updateBackButton === 'function') {
+            updateBackButton();
+        }
+        
+        // Re-initialize name input if going back to step 0
+        if (currentStep === 0) {
+            setTimeout(() => {
+                if (typeof initializeNameInputValidation === 'function') {
+                    initializeNameInputValidation();
+                }
+            }, 100);
+        }
+        
+        console.log('✅ Moved back to step:', currentStep);
+    }
+};
+
+// Define updateProgress function FIRST (before it's used)
+function updateProgress() {
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    
+    if (progressFill && progressText) {
+        const progress = (currentStep / (totalSteps - 1)) * 100;
+        progressFill.style.width = `${progress}%`;
+        
+        if (currentStep === 0) {
+            progressText.textContent = 'Getting Started';
+        } else if (currentStep === 12) {
+            progressText.textContent = 'Almost Done!';
+        } else {
+            progressText.textContent = `Question ${currentStep} of 11`;
+        }
+    }
+}
+
+// Define updateBackButton function
+function updateBackButton() {
+    console.log('🔙 Updating back button for step:', currentStep);
+    
+    const stepButtons = document.querySelectorAll('.step-buttons');
+    
+    stepButtons.forEach(buttonContainer => {
+        // Remove existing back button
+        const existingBackBtn = buttonContainer.querySelector('.btn-back');
+        if (existingBackBtn) {
+            existingBackBtn.remove();
+        }
+        
+        // Add back button if not on first step
+        if (currentStep > 0) {
+            const backButton = document.createElement('button');
+            backButton.className = 'btn-back';
+            backButton.textContent = 'Back';
+            backButton.onclick = function() {
+                console.log('Back button clicked');
+                previousQuestion();
+            };
+            
+            // Insert at the beginning of the container
+            buttonContainer.insertBefore(backButton, buttonContainer.firstChild);
+            console.log('✅ Back button added to step');
+        }
     });
-    document.getElementById('step0').classList.add('active');
+}
+
+// Define resetQuiz function
+function resetQuiz() {
+    console.log('🔄 Resetting quiz');
+    currentStep = 0;
     
-    // Reset form inputs
-    document.getElementById('twinName').value = '';
-    document.querySelector('.btn-continue').disabled = true;
+    // Clear answers
+    Object.keys(answers).forEach(key => delete answers[key]);
     
     // Reset all option buttons
     document.querySelectorAll('.option-btn').forEach(btn => {
@@ -38,250 +141,244 @@ function resetQuiz() {
         checkbox.checked = false;
     });
     
+    // Show progress bar
+    const progressContainer = document.querySelector('.progress-container');
+    if (progressContainer) {
+        progressContainer.style.display = 'block';
+    }
+}
+
+// Define initializeNameInputValidation function
+function initializeNameInputValidation() {
+    console.log('🔧 Initializing name input validation');
+    
+    const nameInput = document.getElementById('twinName');
+    const continueBtn = document.querySelector('.btn-continue, .continue-btn-modal, #continueButton');
+    
+    if (!nameInput || !continueBtn) {
+        console.error('❌ Elements not found:', {
+            nameInput: !!nameInput,
+            continueBtn: !!continueBtn
+        });
+        return;
+    }
+    
+    // Clear existing value and set initial state
+    nameInput.value = '';
+    continueBtn.disabled = true;
+    
+    // Remove existing listeners to avoid duplicates
+    nameInput.removeEventListener('input', handleNameInput);
+    nameInput.removeEventListener('keydown', handleNameKeydown);
+    
+    // Add new listeners
+    nameInput.addEventListener('input', handleNameInput);
+    nameInput.addEventListener('keydown', handleNameKeydown);
+    
+    // Focus the input
+    nameInput.focus();
+    
+    console.log('✅ Name input validation initialized successfully');
+}
+
+function handleNameInput(event) {
+    const value = event.target.value.trim();
+    const hasName = value.length > 0;
+    const continueBtn = document.querySelector('.btn-continue, .continue-btn-modal, #continueButton');
+    
+    console.log('📝 Name input changed:', `"${value}"`, 'Valid:', hasName);
+    
+    if (continueBtn) {
+        continueBtn.disabled = !hasName;
+        
+        if (hasName) {
+            continueBtn.style.opacity = '1';
+            continueBtn.style.cursor = 'pointer';
+        } else {
+            continueBtn.style.opacity = '0.5';
+            continueBtn.style.cursor = 'not-allowed';
+        }
+    }
+}
+
+function handleNameKeydown(event) {
+    if (event.key === 'Enter') {
+        const continueBtn = document.querySelector('.btn-continue, .continue-btn-modal, #continueButton');
+        if (continueBtn && !continueBtn.disabled) {
+            console.log('⏎ Enter key pressed - continuing');
+            event.preventDefault();
+            nextQuestion();
+        }
+    }
+}
+
+// NOW define openTwinWizard (after all dependencies are defined)
+function openTwinWizard() {
+    console.log('🚀 Opening twin wizard');
+    
+    const modal = document.getElementById('twinModal');
+    if (!modal) {
+        console.error('❌ Modal not found');
+        return;
+    }
+    
+    // Show modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
+    
+    // Reset quiz state
+    resetQuiz();
+    
+    // Show first step
+    document.querySelectorAll('.quiz-step').forEach(step => {
+        step.classList.remove('active');
+    });
+    
+    const firstStep = document.getElementById('step0');
+    if (firstStep) {
+        firstStep.classList.add('active');
+        console.log('✅ First step activated');
+    }
+    
+    // Update progress (now this function exists)
     updateProgress();
     updateBackButton();
+    
+    // Initialize name input validation
+    setTimeout(() => {
+        initializeNameInputValidation();
+    }, 100);
 }
 
-function updateProgress() {
-    const progress = (currentStep / (totalSteps - 2)) * 100; // Exclude loading step and permissions
-    document.getElementById('progressFill').style.width = `${progress}%`;
-    
-    if (currentStep === 0) {
-        document.getElementById('progressText').textContent = 'Getting Started';
-    } else if (currentStep === 1) {
-        document.getElementById('progressText').textContent = 'Basic Information';
-    } else if (currentStep <= 11) {
-        document.getElementById('progressText').textContent = `Question ${currentStep - 1} of 10`;
-    } else if (currentStep === 12) {
-        document.getElementById('progressText').textContent = 'Permissions';
-    }
-}
-
-// Replace the existing updateBackButton function
-
-function updateBackButton() {
-    console.log('Updating back button for step:', currentStep);
-    
-    // Remove existing back buttons (except permissions back button)
-    const existingBackButtons = document.querySelectorAll('.btn-back:not(.permissions-back-btn)');
-    existingBackButtons.forEach(btn => btn.remove());
-    
-    // Handle permissions step back button
-    const permissionsBackBtn = document.getElementById('permissionsBackBtn');
-    if (permissionsBackBtn) {
-        if (currentStep === 12) {
-            permissionsBackBtn.style.display = 'flex';
-            console.log('Showing permissions back button');
-        } else {
-            permissionsBackBtn.style.display = 'none';
-        }
-    }
-    
-    // Add back button starting from step 2 (Gender question = step 1, first personality question = step 2)
-    // Show back button for steps 2-11 (personality questions) and step 1 (gender)
-    if (currentStep >= 1 && currentStep <= 11) {
-        const currentStepEl = document.getElementById(`step${currentStep}`);
-        const stepButtons = currentStepEl?.querySelector('.step-buttons');
-        
-        if (stepButtons && !stepButtons.querySelector('.btn-back')) {
-            console.log('Adding back button to step:', currentStep);
-            
-            const backButton = document.createElement('button');
-            backButton.className = 'btn-back';
-            backButton.onclick = previousQuestion;
-            backButton.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5m7-7l-7 7 7 7"/>
-                </svg>
-                Back
-            `;
-            stepButtons.insertBefore(backButton, stepButtons.firstChild);
-        }
-    }
-    
-    // Ensure modal content is scrolled to top when changing steps
-    const modalContent = document.querySelector('.modal-content');
-    if (modalContent) {
-        modalContent.scrollTop = 0;
-    }
-}
-
-// Add this temporary debug function to test back button creation
-
-function debugBackButton() {
-    console.log('=== DEBUG BACK BUTTON ===');
-    console.log('Current step:', currentStep);
-    console.log('Should show back button:', currentStep >= 1 && currentStep <= 11);
-    
-    const currentStepEl = document.getElementById(`step${currentStep}`);
-    console.log('Current step element:', currentStepEl);
-    
-    if (currentStepEl) {
-        const stepButtons = currentStepEl.querySelector('.step-buttons');
-        console.log('Step buttons container:', stepButtons);
-        
-        if (stepButtons) {
-            const existingBackBtn = stepButtons.querySelector('.btn-back');
-            console.log('Existing back button:', existingBackBtn);
-        }
-    }
-    console.log('=========================');
-}
-
-// Replace the existing nextQuestion function
-
+// Define nextQuestion function
 function nextQuestion() {
-    console.log('Next question called, current step:', currentStep);
+    console.log('➡️ Next question from step:', currentStep);
     
+    // Handle name input on step 0
     if (currentStep === 0) {
-        // Validate name input
-        const name = document.getElementById('twinName').value.trim();
-        if (!name) {
-            console.log('No name provided');
+        const nameInput = document.getElementById('twinName');
+        const name = nameInput ? nameInput.value.trim() : '';
+        
+        console.log('📝 Processing name:', `"${name}"`);
+        
+        if (!name || name.length < 2) {
+            alert('Please enter a valid name (at least 2 characters)');
+            if (nameInput) {
+                nameInput.focus();
+                nameInput.style.borderColor = '#ef4444';
+                setTimeout(() => {
+                    nameInput.style.borderColor = '';
+                }, 3000);
+            }
             return;
         }
+        
         answers.name = name;
-        console.log('Name saved:', name);
+        console.log('✅ Name saved:', name);
     }
     
     if (currentStep < totalSteps - 1) {
-        // Slide out current step
-        const currentStepEl = document.getElementById(`step${currentStep}`);
-        console.log('Current step element:', currentStepEl);
-        
-        if (currentStepEl) {
-            currentStepEl.classList.add('slide-out-left');
-            
+        // Hide current step with animation
+        const currentStepElement = document.getElementById(`step${currentStep}`);
+        if (currentStepElement) {
+            currentStepElement.classList.remove('active');
+            currentStepElement.style.opacity = '0';
             setTimeout(() => {
-                currentStepEl.classList.remove('active', 'slide-out-left');
-                currentStep++;
-                console.log('Moving to step:', currentStep);
-                
-                // Slide in next step
-                const nextStepEl = document.getElementById(`step${currentStep}`);
-                console.log('Next step element:', nextStepEl);
-                
-                if (nextStepEl) {
-                    nextStepEl.classList.add('active', 'slide-in-right');
-                    
-                    setTimeout(() => {
-                        nextStepEl.classList.remove('slide-in-right');
-                    }, 300);
-                }
-                
-                updateProgress();
-                updateBackButton();
-                restoreSelectedOption();
-                debugBackButton();
+                currentStepElement.style.opacity = '';
             }, 300);
         }
+        
+        // Show next step
+        currentStep++;
+        const nextStepElement = document.getElementById(`step${currentStep}`);
+        if (nextStepElement) {
+            nextStepElement.classList.add('active');
+        }
+        
+        updateProgress();
+        updateBackButton();
+        
+        // Restore any selected options for this step
+        restoreSelectedOption();
+        
+        console.log('✅ Advanced to step:', currentStep);
     }
 }
 
-// Replace the existing previousQuestion function
-
+// Define remaining functions...
 function previousQuestion() {
+    console.log('⬅️ Previous question from step:', currentStep);
+    
     if (currentStep > 0) {
-        console.log('Going back from step:', currentStep);
+        // Hide current step
+        document.getElementById(`step${currentStep}`).classList.remove('active');
         
-        // Slide out current step to the right
-        const currentStepEl = document.getElementById(`step${currentStep}`);
-        currentStepEl.classList.add('slide-out-right');
+        // Show previous step
+        currentStep--;
+        document.getElementById(`step${currentStep}`).classList.add('active');
         
-        setTimeout(() => {
-            currentStepEl.classList.remove('active', 'slide-out-right');
-            currentStep--;
-            console.log('Now on step:', currentStep);
-            
-            // Slide in previous step from the left
-            const prevStepEl = document.getElementById(`step${currentStep}`);
-            prevStepEl.classList.add('active', 'slide-in-left');
-            
+        updateProgress();
+        updateBackButton();
+        restoreSelectedOption();
+        
+        // Re-initialize name input if going back to step 0
+        if (currentStep === 0) {
             setTimeout(() => {
-                prevStepEl.classList.remove('slide-in-left');
-            }, 300);
-            
-            updateProgress();
-            updateBackButton();
-            restoreSelectedOption();
-            
-            // For name step (step 0), restore continue button state
-            if (currentStep === 0) {
-                const nameInput = document.getElementById('twinName');
-                const continueBtn = document.querySelector('.btn-continue');
-                if (nameInput && continueBtn) {
-                    const hasName = nameInput.value.trim().length > 0;
-                    continueBtn.disabled = !hasName;
-                }
-            }
-        }, 300);
+                initializeNameInputValidation();
+            }, 100);
+        }
+        
+        console.log('✅ Moved back to step:', currentStep);
     }
 }
 
 function restoreSelectedOption() {
-    // Restore previously selected option when going back
-    const currentStepEl = document.getElementById(`step${currentStep}`);
+    const questionKey = `question${currentStep}`;
+    const savedAnswer = answers[questionKey];
     
-    if (currentStep === 1) {
-        // Gender question
-        if (answers.gender) {
-            const genderOption = currentStepEl.querySelector(`[data-value="${answers.gender}"]`);
-            if (genderOption) {
-                genderOption.classList.add('selected');
-            }
-        }
-    } else if (currentStep >= 2 && currentStep <= 11) {
-        // Personality questions
-        const questionKey = `q${currentStep - 1}`;
-        if (answers[questionKey]) {
-            const selectedOption = currentStepEl.querySelector(`[data-value="${answers[questionKey]}"]`);
-            if (selectedOption) {
-                selectedOption.classList.add('selected');
-            }
-        }
-    } else if (currentStep === 12) {
-        // Social media permissions
-        if (answers.socialMediaPermissions && typeof answers.socialMediaPermissions === 'object') {
-            Object.keys(answers.socialMediaPermissions).forEach(platform => {
-                const checkbox = document.getElementById(`${platform}Permission`);
-                if (checkbox) {
-                    checkbox.checked = answers.socialMediaPermissions[platform];
-                }
-            });
+    if (savedAnswer) {
+        const currentStepElement = document.getElementById(`step${currentStep}`);
+        const selectedButton = currentStepElement.querySelector(`[data-value="${savedAnswer}"]`);
+        if (selectedButton) {
+            selectedButton.classList.add('selected');
         }
     }
 }
 
 function selectOption(button) {
-    const step = button.closest('.quiz-step');
-    const questionNumber = step.id.replace('step', '');
+    console.log('🎯 Option selected:', button.dataset.value);
     
-    // Remove selection from other options in this step
-    step.querySelectorAll('.option-btn').forEach(btn => {
-        btn.classList.remove('selected');
-    });
-    
-    // Select this option
-    button.classList.add('selected');
-    
-    // Store answer
-    if (questionNumber === '1') {
-        answers.gender = button.dataset.value;
-    } else {
-        answers[`q${questionNumber - 1}`] = button.dataset.value;
+    if (!button || !button.dataset.value) {
+        console.error('❌ Invalid button or missing data-value');
+        return;
     }
     
-    // Auto-advance after a brief delay
+    // Remove selected class from all buttons in this step
+    const currentStepElement = document.getElementById(`step${currentStep}`);
+    if (currentStepElement) {
+        const allButtons = currentStepElement.querySelectorAll('.option-btn');
+        allButtons.forEach(btn => btn.classList.remove('selected'));
+        console.log('🧹 Cleared previous selections');
+    }
+    
+    // Add selected class to clicked button
+    button.classList.add('selected');
+    
+    // Store the answer
+    const questionKey = `question${currentStep}`;
+    answers[questionKey] = button.dataset.value;
+    
+    console.log('📝 Saved answer:', questionKey, '=', button.dataset.value);
+    console.log('📊 Current answers:', answers);
+    
+    // Auto-advance after short delay
     setTimeout(() => {
-        if (currentStep === 11) {
-            // Last personality question - go to permissions
-            nextQuestion();
-        } else {
-            nextQuestion();
-        }
-    }, 800);
+        nextQuestion();
+    }, 500);
 }
 
+<<<<<<< HEAD
 // Update these functions around line 270-290
 function skipSocialMedia() {
     console.log('📝 Skipping social media permissions');
@@ -317,19 +414,97 @@ function acceptPermissions() {
     
     // Then proceed
     createTwin();
+=======
+function closeTwinWizard() {
+    console.log('🔒 Closing twin wizard');
+    const modal = document.getElementById('twinModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    document.body.style.overflow = '';
+    document.body.classList.remove('modal-open');
+    resetQuiz();
 }
 
-// Function to collect quiz data - FIXED VERSION
-function collectQuizData() {
-    console.log('Collecting quiz data from answers object:', answers);
-    
-    // Use the global answers object that's populated during the quiz
-    const personalityData = buildPersonalityData(answers);
-    
-    console.log('Built personality data:', personalityData);
-    
-    return personalityData;
+// Add remaining functions (skipSocialMedia, acceptPermissions, etc.)...
+function skipSocialMedia() {
+    console.log('⏭️ Skipping social media permissions');
+    answers.socialMedia = {};
+    finishQuiz();
 }
+
+function acceptPermissions() {
+    console.log('✅ Accepting social media permissions');
+    
+    const permissions = {};
+    document.querySelectorAll('.social-checkbox').forEach(checkbox => {
+        permissions[checkbox.id] = checkbox.checked;
+    });
+    
+    answers.socialMedia = permissions;
+    finishQuiz();
+}
+
+function finishQuiz() {
+    console.log('🏁 Finishing quiz with answers:', answers);
+    
+    // Hide current step
+    document.getElementById(`step${currentStep}`).classList.remove('active');
+    
+    // Show loading step
+    showLoadingStep();
+    
+    // Collect and send data
+    const twinData = collectQuizData();
+    createTwin(twinData);
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
+}
+
+function showLoadingStep() {
+    // Hide all steps
+    document.querySelectorAll('.quiz-step').forEach(step => {
+        step.classList.remove('active');
+    });
+    
+    // Show loading step
+    let loadingStep = document.getElementById('loadingStep');
+    if (loadingStep) {
+        loadingStep.classList.add('active');
+        
+        // Animate loading bar
+        const loadingBar = document.getElementById('loadingBar');
+        if (loadingBar) {
+            loadingBar.style.width = '0%';
+            setTimeout(() => {
+                loadingBar.style.width = '90%';
+            }, 500);
+        }
+    }
+}
+
+function collectQuizData() {
+    const data = {
+        name: answers.name,
+        personality: {
+            gender: answers.question1,
+            communication: answers.question2,
+            social: answers.question3,
+            planning: answers.question4,
+            stress: answers.question5,
+            learning: answers.question6,
+            energy: answers.question7,
+            decisions: answers.question8,
+            emotions: answers.question9,
+            change: answers.question10,
+            outlook: answers.question11
+        },
+        socialMedia: answers.socialMedia || {}
+    };
+    
+    console.log('📊 Collected twin data:', data);
+    return data;
+}
+<<<<<<< HEAD
 // Update the createTwin function
 async function createTwin() {
     try {
@@ -344,6 +519,12 @@ async function createTwin() {
         if (!personalityData) {
             throw new Error('Failed to build personality data from answers');
         }
+=======
+
+async function createTwin(twinData) {
+    try {
+        console.log('🚀 Creating twin with data:', twinData);
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
         
         // Show loading step
         showLoadingStep();
@@ -366,6 +547,7 @@ async function createTwin() {
             body: JSON.stringify(personalityData)
         });
 
+<<<<<<< HEAD
         console.log('📡 Response received:', response);
         console.log('📡 Response status:', response.status);
         console.log('📡 Response ok:', response.ok);
@@ -454,11 +636,72 @@ function showFinalSuccess(result) {
     }
     
     // Create or update success step
+=======
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Twin creation successful:', result);
+        
+        if (result.success) {
+            // Complete loading animation
+            const loadingBar = document.getElementById('loadingBar');
+            if (loadingBar) {
+                loadingBar.style.width = '100%';
+            }
+            
+            // Show success after delay
+            setTimeout(() => {
+                showFinalSuccess(result);
+            }, 1500);
+        } else {
+            throw new Error(result.error || 'Twin creation failed');
+        }
+        
+        return result;
+        
+    } catch (error) {
+        console.error('❌ Error creating twin:', error);
+        
+        // Hide loading step
+        const loadingStep = document.getElementById('loadingStep');
+        if (loadingStep) {
+            loadingStep.classList.remove('active');
+        }
+        
+        alert(`Error creating your twin: ${error.message}\n\nPlease try again.`);
+        
+        // Go back to permissions step
+        currentStep = 12;
+        document.getElementById('step12').classList.add('active');
+    }
+}
+
+function showFinalSuccess(result) {
+    console.log('🎉 Showing success:', result);
+    
+    // Hide all steps
+    document.querySelectorAll('.quiz-step').forEach(step => {
+        step.classList.remove('active');
+        step.style.display = 'none';
+    });
+    
+    // Hide progress bar
+    const progressContainer = document.querySelector('.progress-container');
+    if (progressContainer) {
+        progressContainer.style.display = 'none';
+    }
+    
+    // Create success step
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
     let successStep = document.getElementById('successStep');
     if (!successStep) {
         successStep = document.createElement('div');
         successStep.className = 'quiz-step';
         successStep.id = 'successStep';
+<<<<<<< HEAD
         quizContainer.appendChild(successStep);
     }
     
@@ -474,12 +717,49 @@ function showFinalSuccess(result) {
             <div class="action-buttons">
                 <button onclick="goToChat()" class="btn-primary">Start Chatting</button>
             </div>
+=======
+        document.querySelector('.modal-content').appendChild(successStep);
+    }
+    
+    const twinName = result.twin?.name || result.name || answers.name || 'Your Twin';
+    
+    successStep.innerHTML = `
+        <div style="text-align: center; padding: 3rem 2rem;">
+            <div style="font-size: 4rem; margin-bottom: 1.5rem;">🎉</div>
+            <h2 style="color: #8B5CF6; margin-bottom: 1rem; font-size: 2rem;">
+                Congratulations!
+            </h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2.5rem; color: #6B7280;">
+                <strong>${twinName}</strong> has been created successfully!<br>
+                Your AI twin is ready to chat with you.
+            </p>
+            
+            <button onclick="goToChat()" style="
+                background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+                color: white;
+                padding: 15px 30px;
+                border: none;
+                border-radius: 12px;
+                font-weight: 600;
+                font-size: 1.1rem;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+            ">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Start Chatting
+            </button>
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
         </div>
     `;
     
-    // Show success step
+    successStep.style.display = 'block';
     successStep.classList.add('active');
     
+<<<<<<< HEAD
     // Hide progress bar
     const progressContainer = document.querySelector('.progress-container');
     if (progressContainer) {
@@ -551,10 +831,24 @@ function animateLoading() {
             clearInterval(interval);
         }
     }, 150);
+=======
+    // Store twin data
+    const twinData = {
+        id: result.twinId || result.twin?._id,
+        _id: result.twinId || result.twin?._id,
+        name: twinName,
+        hasPersonality: true,
+        personality: result.twin?.personality || result.personality
+    };
+    
+    localStorage.setItem('currentTwin', JSON.stringify(twinData));
+    localStorage.setItem('twinId', twinData.id);
+    localStorage.setItem('twinName', twinData.name);
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
 }
 
-// Navigation functions
 function goToChat() {
+<<<<<<< HEAD
     window.location.href = 'chat.html';
 }
 
@@ -730,48 +1024,55 @@ function debugStep12Buttons() {
     console.log('acceptPermissions function exists:', typeof acceptPermissions);
     console.log('createTwin function exists:', typeof createTwin);
 }
+=======
+    console.log('🚀 Navigating to chat...');
+    
+    const storedTwin = localStorage.getItem('currentTwin');
+    const storedTwinId = localStorage.getItem('twinId');
+    
+    if (!storedTwin || !storedTwinId) {
+        alert('Error: Twin data not found. Please try creating your twin again.');
+        return;
+    }
+    
+    closeTwinWizard();
+    setTimeout(() => {
+        window.location.href = 'chat.html';
+    }, 300);
+}
 
-// Initialize when DOM is loaded
+// Make all functions globally available
+window.openTwinWizard = openTwinWizard;
+window.closeTwinWizard = closeTwinWizard;
+window.nextQuestion = nextQuestion;
+window.previousQuestion = previousQuestion;
+window.selectOption = selectOption;
+window.skipSocialMedia = skipSocialMedia;
+window.acceptPermissions = acceptPermissions;
+window.goToChat = goToChat;
+window.updateProgress = updateProgress;
+window.initializeNameInputValidation = initializeNameInputValidation;
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
+
+console.log('✅ index.js loaded completely - all functions available');
+
+// Debug CSS loading
 document.addEventListener('DOMContentLoaded', function() {
-    // Name input validation
-    const nameInput = document.getElementById('twinName');
-    const continueBtn = document.querySelector('.btn-continue');
+    console.log('🔍 CSS Debug - Checking loaded stylesheets:');
     
-    if (nameInput && continueBtn) {
-        nameInput.addEventListener('input', function() {
-            const hasName = this.value.trim().length > 0;
-            continueBtn.disabled = !hasName;
-        });
-
-        // Enter key support for name input
-        nameInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !continueBtn.disabled) {
-                nextQuestion();
-            }
-        });
-    }
-
-    // Close modal on outside click
-    const twinModal = document.getElementById('twinModal');
-    if (twinModal) {
-        twinModal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeTwinWizard();
-            }
-        });
-    }
-
-    // Prevent modal close on content click
-    const modalContent = document.querySelector('.modal-content');
-    if (modalContent) {
-        modalContent.addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
-    }
-
-    // Initialize back button visibility
-    updateBackButton();
+    const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
+    stylesheets.forEach((sheet, index) => {
+        console.log(`${index + 1}. ${sheet.href}`);
+        
+        // Check if CSS loaded successfully
+        if (sheet.sheet) {
+            console.log(`   ✅ Loaded: ${sheet.sheet.cssRules?.length || 0} rules`);
+        } else {
+            console.error(`   ❌ Failed to load: ${sheet.href}`);
+        }
+    });
     
+<<<<<<< HEAD
     // Also call updateBackButton whenever the modal opens
     const originalOpenTwinWizard = openTwinWizard;
     openTwinWizard = function() {
@@ -809,4 +1110,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
     
     // ... rest of your existing DOMContentLoaded code ...
+=======
+    // Test modal styles
+    const modal = document.getElementById('twinModal');
+    if (modal) {
+        const styles = window.getComputedStyle(modal);
+        console.log('Modal styles:', {
+            display: styles.display,
+            position: styles.position,
+            zIndex: styles.zIndex,
+            background: styles.backgroundColor
+        });
+    }
+>>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
 });
