@@ -13,38 +13,20 @@ const PORT = process.env.PORT || 3001;
 const isProduction = process.env.NODE_ENV === 'production';
 console.log(`🌍 Environment: ${isProduction ? 'Production' : 'Development'}`);
 
-<<<<<<< HEAD
-// CORS configuration for both local and production
+// CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
-    
     const allowedOrigins = [
-      // Production frontend URLs (update these with your actual URLs)
-      'https://your-vercel-app.vercel.app',
-      'https://your-netlify-app.netlify.app',
-      
-      // Local development
-      'http://localhost:5173', // Vite
-      'http://localhost:3000', // React
-      'http://localhost:5500', // Live Server
-      'http://localhost:8080', // Common dev port
-      'http://127.0.0.1:5500', // Live Server alternative
-      'http://127.0.0.1:5173', // Vite alternative
-      
-      // Environment variable (for dynamic configuration)
+      'http://localhost:5500',
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5500',
       process.env.CORS_ORIGIN
-    ].filter(Boolean); // Remove any undefined values
+    ].filter(Boolean);
     
-    console.log('🔍 CORS Check - Origin:', origin);
-    console.log('🔍 CORS Check - Allowed origins:', allowedOrigins);
-    
-    if (allowedOrigins.includes(origin)) {
-      console.log('✅ CORS - Origin allowed');
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.log('❌ CORS - Origin blocked');
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -54,21 +36,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-=======
-// Middleware
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://127.0.0.1:5500',
-    'https://echo-me-x.vercel.app',
-    'https://www.echo-me-x.vercel.app'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
->>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -86,9 +53,14 @@ if (isProduction) {
   });
 }
 
-// Request logging
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
+// Request logging middleware
+app.use('/api', (req, res, next) => {
+  console.log('\n🔍 === INCOMING API REQUEST ===');
+  console.log('Time:', new Date().toISOString());
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Body:', req.body);
+  console.log('==============================\n');
   next();
 });
 
@@ -101,12 +73,11 @@ app.get('/', (req, res) => {
   });
 });
 
-// Add health check endpoint
+// Health check
 app.get('/health', (req, res) => {
   res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    status: 'ok', 
+    timestamp: new Date().toISOString() 
   });
 });
 
@@ -117,32 +88,8 @@ app.get('/test', (req, res) => {
   });
 });
 
-<<<<<<< HEAD
-// Add this BEFORE app.use('/api', apiRoutes) in server.js
-app.use('/api', (req, res, next) => {
-  console.log('\n🔍 === INCOMING API REQUEST ===');
-  console.log('Time:', new Date().toISOString());
-  console.log('Method:', req.method);
-  console.log('URL:', req.url);
-  console.log('Body:', req.body);
-  console.log('==============================\n');
-  next();
-});
-
 // API Routes
 app.use('/api', apiRoutes);
-
-=======
-// API Routes
-app.use('/api', apiRoutes);
-
->>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
-// Remove or comment out the duplicate endpoints below since they're handled by routes/api.js
-/*
-app.post('/api/chat-with-personality', async (req, res) => {
-    // Remove this duplicate
-});
-*/
 
 // Debug endpoint to see all available routes
 app.get('/api/routes', (req, res) => {
@@ -192,16 +139,7 @@ app.use('*', (req, res) => {
   });
 });
 
-// Error handling
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).json({ 
-    error: 'Internal server error',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Add this error handling middleware AFTER your routes in server.js
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error('💥 EXPRESS ERROR CAUGHT:');
   console.error('Error name:', err.name);
