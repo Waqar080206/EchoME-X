@@ -1,11 +1,8 @@
 let currentTwin = null;
 let currentActiveMenu = null;
 
-<<<<<<< HEAD
-=======
 const API_BASE_URL = 'https://echome-x.onrender.com';
 
->>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
 // Add this function to handle twin selection from sidebar
 window.updateChatInterface = function(twin) {
     console.log('🎨 Updating chat interface for:', twin.name);
@@ -47,74 +44,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize sidebar functionality
     initializeSidebar();
     
-<<<<<<< HEAD
-    // Check stored twin data first
-    const storedTwinId = localStorage.getItem('twinId');
-    const storedTwinName = localStorage.getItem('twinName');
-    const personalityProfile = localStorage.getItem('personalityProfile');
-    
-    console.log('🔍 Checking stored twin data:', { 
-        storedTwinId, 
-        storedTwinName, 
-        hasPersonality: !!personalityProfile 
-    });
-    
-    // Check if stored ID is valid MongoDB ObjectId format
-    const mongoIdPattern = /^[0-9a-fA-F]{24}$/;
-    const isValidStoredId = storedTwinId && mongoIdPattern.test(storedTwinId);
-    
-    if (isValidStoredId && storedTwinName) {
-        // Use valid stored data
-        currentTwin = {
-            _id: storedTwinId,
-            id: storedTwinId,
-            name: storedTwinName,
-            hasPersonality: !!personalityProfile
-        };
-        updateChatInterface(currentTwin);
-        console.log('✅ Using valid stored twin data:', currentTwin);
-    } else {
-        // Clear invalid data and try to load from backend
-        if (storedTwinId && !isValidStoredId) {
-            console.log('🧹 Clearing invalid twin ID:', storedTwinId);
-            clearOldTwinData();
-        }
-        
-        try {
-            console.log('🔄 Loading twin from backend...');
-            const response = await fetch('/api/get-first-twin');
-            const result = await response.json();
-            
-            if (result.success && result.twin) {
-                currentTwin = {
-                    _id: result.twin.id,
-                    id: result.twin.id,
-                    name: result.twin.name,
-                    hasPersonality: result.twin.hasPersonality
-                };
-                
-                // Store the valid twin data
-                localStorage.setItem('currentTwin', JSON.stringify(currentTwin));
-                localStorage.setItem('twinId', currentTwin.id);
-                localStorage.setItem('twinName', currentTwin.name);
-                if (result.twin.personality) {
-                    localStorage.setItem('personalityProfile', JSON.stringify(result.twin.personality));
-                }
-                
-                updateChatInterface(currentTwin);
-                console.log('✅ Loaded and stored twin from backend:', currentTwin);
-            } else {
-                throw new Error('No twin data received from backend');
-            }
-        } catch (error) {
-            console.log('❌ No twin found, showing create twin message');
-            showCreateTwinState();
-        }
-    }
-=======
     // Load twin data
     loadTwinData();
->>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
     
     // Setup form handlers
     setupChatHandlers();
@@ -486,9 +417,6 @@ function setupChatHandlers() {
     });
 }
 
-<<<<<<< HEAD
-// Update the sendMessage function around line 512
-=======
 // Update loadTwinData function
 function loadTwinData() {
     console.log('📱 Loading twin data...');
@@ -532,7 +460,6 @@ function loadTwinData() {
 }
 
 // Fix sendMessage function
->>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
 async function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const message = messageInput.value.trim();
@@ -562,22 +489,7 @@ async function sendMessage() {
     showTypingIndicator();
     
     try {
-<<<<<<< HEAD
-        console.log('🌐 Sending to backend:', currentTwin._id);
-        
-        // Use API config
-        const apiUrl = API_CONFIG.getEndpoint('CHAT');
-        console.log('🌐 API URL:', apiUrl);
-        
-        const requestBody = {
-            message: message,
-            twinId: currentTwin._id
-        };
-        
-        const response = await fetch(apiUrl, {
-=======
         const response = await fetch(`${API_BASE_URL}/api/chat-personality`, {
->>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

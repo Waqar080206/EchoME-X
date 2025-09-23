@@ -69,12 +69,6 @@ router.post('/chat-personality', controller.chatWithPersonality);
 // Replace the debug route
 router.get('/debug-twins', async (req, res) => {
   try {
-<<<<<<< HEAD
-    const result = await controller.getDebugInfo();
-    res.json({ success: true, ...result });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-=======
     const Twin = require('../models/Twin');
     const twins = await Twin.find({}, '_id name userId personalityProfile').limit(10);
     
@@ -100,7 +94,6 @@ router.get('/debug-twins', async (req, res) => {
       error: 'Failed to debug twins',
       details: error.message
     });
->>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
   }
 });
 
@@ -298,8 +291,39 @@ router.get('/debug-env', (req, res) => {
   });
 });
 
-<<<<<<< HEAD
-// Add a simple test route
+// Routes list endpoint
+router.get('/routes', (req, res) => {
+  res.json({
+    availableRoutes: [
+      'GET /',
+      'GET /health',
+      'GET /test',
+      'POST /api/create-personality-twin',
+      'POST /api/train',
+      'GET /api/twin-info',
+      'POST /api/chat',
+      'POST /api/chat-with-personality',
+      'GET /api/routes'
+    ]
+  });
+});
+
+// Test route
+router.get('/test', (req, res) => {
+  res.json({ 
+    message: 'API is working!', 
+    timestamp: new Date().toISOString() 
+  });
+});
+
+// Main routes
+router.post('/create-personality-twin', controller.createPersonalityTwin);
+router.post('/chat-with-personality', controller.chatWithPersonality);
+router.post('/train', controller.trainTwin);
+router.get('/twin-info/:id', controller.getTwinInfo);
+router.post('/chat', controller.chat);
+
+// Test routes for debugging
 router.post('/test-create', (req, res) => {
   console.log('🧪 Test route hit with body:', req.body);
   res.json({
@@ -309,7 +333,6 @@ router.post('/test-create', (req, res) => {
   });
 });
 
-// Add this database test route
 router.get('/test-db', async (req, res) => {
   try {
     const mongoose = require('mongoose');
@@ -340,6 +363,4 @@ router.get('/test-db', async (req, res) => {
   }
 });
 
-=======
->>>>>>> 70ef16e50b6f6b28cbe68c48f92fa1bd37a4b721
 module.exports = router;
