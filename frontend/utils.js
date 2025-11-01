@@ -252,96 +252,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Twin creation utilities
-async function createTwin(twinData) {
-    try {
-        console.log('🚀 Creating personality twin with data:', twinData);
-        
-        // If twinData is undefined, collect it
-        if (!twinData) {
-            twinData = collectQuizData();
-            console.log('📊 Collected quiz data:', twinData);
-        }
-        
-        // Show loading state
-        showLoadingStep();
-        
-        const response = await fetch(`${getAPIBaseURL()}/api/create-personality-twin`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(twinData)
-        });
-
-        console.log('🌐 Create twin response status:', response.status);
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Server error:', errorText);
-            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ Twin creation successful:', result);
-        
-        if (result.success) {
-            // Complete the loading animation
-            const loadingBar = document.getElementById('loadingBar');
-            if (loadingBar) {
-                loadingBar.style.width = '100%';
-            }
-            
-            // Show success after a brief delay
-            setTimeout(() => {
-                showFinalSuccess(result);
-            }, 1500);
-        } else {
-            throw new Error(result.error || 'Twin creation failed');
-        }
-        
-        return result;
-        
-    } catch (error) {
-        console.error('❌ Error creating personality twin:', error);
-        
-        // Hide loading step
-        const loadingStep = document.getElementById('loadingStep');
-        if (loadingStep) {
-            loadingStep.classList.remove('active');
-        }
-        
-        // Show error message
-        alert(`Error creating your twin: ${error.message}\n\nPlease try again.`);
-        
-        // Go back to the quiz
-        currentStep = 11; // Go back to last question
-        showCurrentStep();
-    }
-}
-
-function showLoadingStep() {
-    // Hide all other steps
-    document.querySelectorAll('.quiz-step').forEach(step => {
-        step.classList.remove('active');
-    });
-    
-    // Show loading step
-    const loadingStep = document.getElementById('loadingStep');
-    if (loadingStep) {
-        loadingStep.classList.add('active');
-        
-        // Animate the loading bar
-        const loadingBar = document.getElementById('loadingBar');
-        if (loadingBar) {
-            loadingBar.style.width = '0%';
-            setTimeout(() => {
-                loadingBar.style.width = '90%';
-            }, 500);
-        }
-    }
-}
-
 // Export functions for use in other files
 window.EchoMeUtils = {
     getAPIBaseURL,
@@ -355,6 +265,5 @@ window.EchoMeUtils = {
     validateMessage,
     showNotification,
     initializeMobileNavigation,
-    escapeHtml,
-    createTwin
+    escapeHtml
 };
