@@ -1,10 +1,13 @@
 // Shared utilities for EchoMe X frontend
 // This file contains common functions used across multiple pages
 
-// API Configuration - Updated for production
-const API_BASE_URL = 'https://echome-x.onrender.com'; // Replace with your actual Render URL
+// Get API Base URL from centralized config
+// This will be set by js/config.js which is loaded first
+const getAPIBaseURL = () => {
+    return window.API_CONFIG?.BASE_URL || 'https://echome-x.onrender.com';
+};
 
-console.log('🔗 API Base URL:', API_BASE_URL);
+console.log('🔗 Utilities loaded - API Base URL:', getAPIBaseURL());
 
 // Error handling utilities
 class APIError extends Error {
@@ -18,7 +21,7 @@ class APIError extends Error {
 
 // Generic API call function with error handling
 async function makeAPICall(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const url = `${getAPIBaseURL()}${endpoint}`;
     const defaultOptions = {
         headers: {
             'Content-Type': 'application/json',
@@ -70,7 +73,7 @@ async function makeAPICall(endpoint, options = {}) {
 // Send message API call
 async function sendMessage(message) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/chat`, {
+        const response = await fetch(`${getAPIBaseURL()}/api/chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -263,7 +266,7 @@ async function createTwin(twinData) {
         // Show loading state
         showLoadingStep();
         
-        const response = await fetch(`${API_BASE_URL}/api/create-personality-twin`, {
+        const response = await fetch(`${getAPIBaseURL()}/api/create-personality-twin`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -341,7 +344,7 @@ function showLoadingStep() {
 
 // Export functions for use in other files
 window.EchoMeUtils = {
-    API_BASE_URL,
+    getAPIBaseURL,
     APIError,
     makeAPICall,
     sendMessage,
@@ -352,5 +355,6 @@ window.EchoMeUtils = {
     validateMessage,
     showNotification,
     initializeMobileNavigation,
+    escapeHtml,
     createTwin
 };

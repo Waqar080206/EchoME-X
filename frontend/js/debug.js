@@ -1,8 +1,10 @@
 // Add this for debugging
 function testAPIConnection() {
-    const API_BASE_URL = 'https://echome-x.onrender.com';
+    const getAPIBaseURL = () => {
+        return window.API_CONFIG?.BASE_URL || 'https://echome-x.onrender.com';
+    };
     
-    fetch(`${API_BASE_URL}/health`)
+    fetch(`${getAPIBaseURL()}/health`)
         .then(response => {
             console.log('API Health Check Status:', response.status);
             return response.json();
@@ -17,13 +19,17 @@ function testAPIConnection() {
 
 // Add this for debugging your deployment
 function debugTwinCreation() {
+    const getAPIBaseURL = () => {
+        return window.API_CONFIG?.BASE_URL || 'https://echome-x.onrender.com';
+    };
+    
     console.log('🔍 Debug: Twin Creation Status');
     console.log('- Current Step:', currentStep);
     console.log('- Answers:', answers);
-    console.log('- API Base URL:', API_BASE_URL);
+    console.log('- API Base URL:', getAPIBaseURL());
     
     // Test API connection
-    fetch(`${API_BASE_URL}/health`)
+    fetch(`${getAPIBaseURL()}/health`)
         .then(response => {
             console.log('✅ API Health Check:', response.status);
             return response.json();

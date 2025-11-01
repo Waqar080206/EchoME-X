@@ -1,7 +1,10 @@
 let currentTwin = null;
 let currentActiveMenu = null;
 
-const API_BASE_URL = 'https://echome-x.onrender.com';
+// Get API Base URL from centralized config
+const getAPIBaseURL = () => {
+    return window.API_CONFIG?.BASE_URL || 'https://echome-x.onrender.com';
+};
 
 // Add this function to handle twin selection from sidebar
 window.updateChatInterface = function(twin) {
@@ -489,7 +492,7 @@ async function sendMessage() {
     showTypingIndicator();
     
     try {
-        const response = await fetch(`${API_BASE_URL}/api/chat-personality`, {
+        const response = await fetch(`${getAPIBaseURL()}/api/chat-personality`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -671,40 +674,7 @@ function scrollToBottom() {
     }, 100);
 }
 
-function showNotification(message, type = 'info') {
-    // Simple notification system
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#6b7280'};
-        color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
-        z-index: 10000;
-        opacity: 0;
-        transform: translateX(100%);
-        transition: all 0.3s ease;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Animate in
-    setTimeout(() => {
-        notification.style.opacity = '1';
-        notification.style.transform = 'translateX(0)';
-    }, 100);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
+// Use escapeHtml and showNotification from utils.js (via window.EchoMeUtils)
 
 // ========== EVENT LISTENERS ==========
 
@@ -718,10 +688,21 @@ document.addEventListener('click', (e) => {
 
 // ========== UTILITY FUNCTIONS ==========
 
+// Use escapeHtml from utils.js (via window.EchoMeUtils)
 function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    // Delegate to shared utility
+    return window.EchoMeUtils?.escapeHtml(text) || text;
+}
+
+// Use showNotification from utils.js (via window.EchoMeUtils)  
+function showNotification(message, type = 'info') {
+    // Delegate to shared utility
+    if (window.EchoMeUtils?.showNotification) {
+        window.EchoMeUtils.showNotification(message, type);
+    } else {
+        // Fallback
+        alert(message);
+    }
 }
 
 // Make loadTwinList available globally for index.js
