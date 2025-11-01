@@ -690,19 +690,46 @@ document.addEventListener('click', (e) => {
 
 // Use escapeHtml from utils.js (via window.EchoMeUtils)
 function escapeHtml(text) {
-    // Delegate to shared utility
-    return window.EchoMeUtils?.escapeHtml(text) || text;
+    // Delegate to shared utility if available
+    if (window.EchoMeUtils && typeof window.EchoMeUtils.escapeHtml === 'function') {
+        return window.EchoMeUtils.escapeHtml(text);
+    }
+    // Fallback implementation
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Use showNotification from utils.js (via window.EchoMeUtils)  
 function showNotification(message, type = 'info') {
-    // Delegate to shared utility
-    if (window.EchoMeUtils?.showNotification) {
+    // Delegate to shared utility if available
+    if (window.EchoMeUtils && typeof window.EchoMeUtils.showNotification === 'function') {
         window.EchoMeUtils.showNotification(message, type);
-    } else {
-        // Fallback
-        alert(message);
+        return;
     }
+    
+    // Fallback: Simple notification without alert
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#6b7280'};
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }
 
 // Make loadTwinList available globally for index.js

@@ -128,8 +128,13 @@ router.get('/debug-twins', async (req, res) => {
 
 // ==================== DEVELOPMENT-ONLY ROUTES ====================
 
-// Only load test routes in development
-if (process.env.NODE_ENV === 'development') {
+// Only load test routes in development/test environments
+const isDevelopment = process.env.NODE_ENV === 'development' || 
+                      process.env.NODE_ENV === 'dev' || 
+                      process.env.NODE_ENV === 'test' ||
+                      !process.env.NODE_ENV; // Default to development if not set
+
+if (isDevelopment) {
   // Test AI service
   router.post('/test-ai', async (req, res) => {
     try {
