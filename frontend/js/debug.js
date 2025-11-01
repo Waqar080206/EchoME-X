@@ -1,7 +1,10 @@
 // Add this for debugging
 function testAPIConnection() {
+    // Fallback API URL if config is not loaded
+    const FALLBACK_API_URL = 'https://echome-x.onrender.com';
+    
     const getAPIBaseURL = () => {
-        return window.API_CONFIG?.BASE_URL || 'https://echome-x.onrender.com';
+        return window.API_CONFIG?.BASE_URL || FALLBACK_API_URL;
     };
     
     fetch(`${getAPIBaseURL()}/health`)
@@ -19,8 +22,11 @@ function testAPIConnection() {
 
 // Add this for debugging your deployment
 function debugTwinCreation() {
+    // Fallback API URL if config is not loaded
+    const FALLBACK_API_URL = 'https://echome-x.onrender.com';
+    
     const getAPIBaseURL = () => {
-        return window.API_CONFIG?.BASE_URL || 'https://echome-x.onrender.com';
+        return window.API_CONFIG?.BASE_URL || FALLBACK_API_URL;
     };
     
     console.log('🔍 Debug: Twin Creation Status');

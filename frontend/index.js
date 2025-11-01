@@ -2,9 +2,12 @@ let currentStep = 0;
 const totalSteps = 13;
 const answers = {};
 
+// Fallback API URL if config is not loaded
+const FALLBACK_API_URL = 'https://echome-x.onrender.com';
+
 // Get API Base URL from centralized config
 const getAPIBaseURL = () => {
-    return window.API_CONFIG?.BASE_URL || 'https://echome-x.onrender.com';
+    return window.API_CONFIG?.BASE_URL || FALLBACK_API_URL;
 };
 
 // Make functions available IMMEDIATELY (before any other code)

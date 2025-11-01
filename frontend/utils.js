@@ -1,10 +1,13 @@
 // Shared utilities for EchoMe X frontend
 // This file contains common functions used across multiple pages
 
+// Fallback API URL if config is not loaded
+const FALLBACK_API_URL = 'https://echome-x.onrender.com';
+
 // Get API Base URL from centralized config
 // This will be set by js/config.js which is loaded first
 const getAPIBaseURL = () => {
-    return window.API_CONFIG?.BASE_URL || 'https://echome-x.onrender.com';
+    return window.API_CONFIG?.BASE_URL || FALLBACK_API_URL;
 };
 
 console.log('🔗 Utilities loaded - API Base URL:', getAPIBaseURL());
