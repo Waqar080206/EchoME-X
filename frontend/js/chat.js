@@ -688,19 +688,23 @@ document.addEventListener('click', (e) => {
 
 // ========== UTILITY FUNCTIONS ==========
 
-// Use escapeHtml from utils.js (via window.EchoMeUtils)
+// Wrapper for escapeHtml that delegates to shared utility with fallback
+// NOTE: This wrapper function exists to ensure chat.js has HTML escaping capability
+// even if utils.js fails to load or EchoMeUtils is not available. This is a safety
+// measure for critical user-generated content that must always be escaped.
 function escapeHtml(text) {
     // Delegate to shared utility if available
     if (window.EchoMeUtils && typeof window.EchoMeUtils.escapeHtml === 'function') {
         return window.EchoMeUtils.escapeHtml(text);
     }
-    // Fallback implementation
+    // Fallback implementation (safety measure)
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-// Use showNotification from utils.js (via window.EchoMeUtils)  
+// Wrapper for showNotification that delegates to shared utility with fallback
+// NOTE: This wrapper ensures notifications work even if utils.js doesn't load
 function showNotification(message, type = 'info') {
     // Delegate to shared utility if available
     if (window.EchoMeUtils && typeof window.EchoMeUtils.showNotification === 'function') {

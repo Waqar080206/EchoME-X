@@ -129,10 +129,17 @@ router.get('/debug-twins', async (req, res) => {
 // ==================== DEVELOPMENT-ONLY ROUTES ====================
 
 // Only load test routes in development/test environments
+// NOTE: Intentionally NOT enabling when NODE_ENV is undefined to avoid 
+// accidental exposure in production if environment is not properly configured
 const isDevelopment = process.env.NODE_ENV === 'development' || 
                       process.env.NODE_ENV === 'dev' || 
-                      process.env.NODE_ENV === 'test' ||
-                      !process.env.NODE_ENV; // Default to development if not set
+                      process.env.NODE_ENV === 'test';
+
+if (isDevelopment) {
+  console.log('🧪 Loading development-only test routes');
+} else {
+  console.log('🔒 Test routes disabled in production');
+}
 
 if (isDevelopment) {
   // Test AI service

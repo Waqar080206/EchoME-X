@@ -252,7 +252,10 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Export functions for use in other files
+// Export shared utility functions for use in other files
+// NOTE: Page-specific functions (like createTwin, showLoadingStep) are kept
+// in their respective page files (e.g., index.js) as they contain page-specific
+// logic and UI elements that don't make sense to share globally
 window.EchoMeUtils = {
     getAPIBaseURL,
     APIError,
