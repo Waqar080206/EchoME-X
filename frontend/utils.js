@@ -1,10 +1,16 @@
 // Shared utilities for EchoMe X frontend
 // This file contains common functions used across multiple pages
 
-// API Configuration - Updated for production
-const API_BASE_URL = 'https://echome-x.onrender.com'; // Replace with your actual Render URL
+// Fallback API URL if config is not loaded
+const FALLBACK_API_URL = 'https://echome-x.onrender.com';
 
-console.log('🔗 API Base URL:', API_BASE_URL);
+// Get API Base URL from centralized config
+// This will be set by js/config.js which is loaded first
+const getAPIBaseURL = () => {
+    return window.API_CONFIG?.BASE_URL || FALLBACK_API_URL;
+};
+
+console.log('🔗 Utilities loaded - API Base URL:', getAPIBaseURL());
 
 // Error handling utilities
 class APIError extends Error {
@@ -18,7 +24,7 @@ class APIError extends Error {
 
 // Generic API call function with error handling
 async function makeAPICall(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const url = `${getAPIBaseURL()}${endpoint}`;
     const defaultOptions = {
         headers: {
             'Content-Type': 'application/json',
@@ -70,7 +76,7 @@ async function makeAPICall(endpoint, options = {}) {
 // Send message API call
 async function sendMessage(message) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/chat`, {
+        const response = await fetch(`${getAPIBaseURL()}/api/chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -249,99 +255,12 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Twin creation utilities
-async function createTwin(twinData) {
-    try {
-        console.log('🚀 Creating personality twin with data:', twinData);
-        
-        // If twinData is undefined, collect it
-        if (!twinData) {
-            twinData = collectQuizData();
-            console.log('📊 Collected quiz data:', twinData);
-        }
-        
-        // Show loading state
-        showLoadingStep();
-        
-        const response = await fetch(`${API_BASE_URL}/api/create-personality-twin`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(twinData)
-        });
-
-        console.log('🌐 Create twin response status:', response.status);
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Server error:', errorText);
-            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ Twin creation successful:', result);
-        
-        if (result.success) {
-            // Complete the loading animation
-            const loadingBar = document.getElementById('loadingBar');
-            if (loadingBar) {
-                loadingBar.style.width = '100%';
-            }
-            
-            // Show success after a brief delay
-            setTimeout(() => {
-                showFinalSuccess(result);
-            }, 1500);
-        } else {
-            throw new Error(result.error || 'Twin creation failed');
-        }
-        
-        return result;
-        
-    } catch (error) {
-        console.error('❌ Error creating personality twin:', error);
-        
-        // Hide loading step
-        const loadingStep = document.getElementById('loadingStep');
-        if (loadingStep) {
-            loadingStep.classList.remove('active');
-        }
-        
-        // Show error message
-        alert(`Error creating your twin: ${error.message}\n\nPlease try again.`);
-        
-        // Go back to the quiz
-        currentStep = 11; // Go back to last question
-        showCurrentStep();
-    }
-}
-
-function showLoadingStep() {
-    // Hide all other steps
-    document.querySelectorAll('.quiz-step').forEach(step => {
-        step.classList.remove('active');
-    });
-    
-    // Show loading step
-    const loadingStep = document.getElementById('loadingStep');
-    if (loadingStep) {
-        loadingStep.classList.add('active');
-        
-        // Animate the loading bar
-        const loadingBar = document.getElementById('loadingBar');
-        if (loadingBar) {
-            loadingBar.style.width = '0%';
-            setTimeout(() => {
-                loadingBar.style.width = '90%';
-            }, 500);
-        }
-    }
-}
-
-// Export functions for use in other files
+// Export shared utility functions for use in other files
+// NOTE: Page-specific functions (like createTwin, showLoadingStep) are kept
+// in their respective page files (e.g., index.js) as they contain page-specific
+// logic and UI elements that don't make sense to share globally
 window.EchoMeUtils = {
-    API_BASE_URL,
+    getAPIBaseURL,
     APIError,
     makeAPICall,
     sendMessage,
@@ -352,5 +271,5 @@ window.EchoMeUtils = {
     validateMessage,
     showNotification,
     initializeMobileNavigation,
-    createTwin
+    escapeHtml
 };

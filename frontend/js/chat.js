@@ -1,7 +1,13 @@
 let currentTwin = null;
 let currentActiveMenu = null;
 
-const API_BASE_URL = 'https://echome-x.onrender.com';
+// Fallback API URL if config is not loaded
+const FALLBACK_API_URL = 'https://echome-x.onrender.com';
+
+// Get API Base URL from centralized config
+const getAPIBaseURL = () => {
+    return window.API_CONFIG?.BASE_URL || FALLBACK_API_URL;
+};
 
 // Add this function to handle twin selection from sidebar
 window.updateChatInterface = function(twin) {
@@ -489,7 +495,7 @@ async function sendMessage() {
     showTypingIndicator();
     
     try {
-        const response = await fetch(`${API_BASE_URL}/api/chat-personality`, {
+        const response = await fetch(`${getAPIBaseURL()}/api/chat-personality`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -671,40 +677,7 @@ function scrollToBottom() {
     }, 100);
 }
 
-function showNotification(message, type = 'info') {
-    // Simple notification system
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#6b7280'};
-        color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
-        z-index: 10000;
-        opacity: 0;
-        transform: translateX(100%);
-        transition: all 0.3s ease;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Animate in
-    setTimeout(() => {
-        notification.style.opacity = '1';
-        notification.style.transform = 'translateX(0)';
-    }, 100);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
+// Use escapeHtml and showNotification from utils.js (via window.EchoMeUtils)
 
 // ========== EVENT LISTENERS ==========
 
@@ -718,10 +691,52 @@ document.addEventListener('click', (e) => {
 
 // ========== UTILITY FUNCTIONS ==========
 
+// Wrapper for escapeHtml that delegates to shared utility with fallback
+// NOTE: This wrapper function exists to ensure chat.js has HTML escaping capability
+// even if utils.js fails to load or EchoMeUtils is not available. This is a safety
+// measure for critical user-generated content that must always be escaped.
 function escapeHtml(text) {
+    // Delegate to shared utility if available
+    if (window.EchoMeUtils && typeof window.EchoMeUtils.escapeHtml === 'function') {
+        return window.EchoMeUtils.escapeHtml(text);
+    }
+    // Fallback implementation (safety measure)
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Wrapper for showNotification that delegates to shared utility with fallback
+// NOTE: This wrapper ensures notifications work even if utils.js doesn't load
+function showNotification(message, type = 'info') {
+    // Delegate to shared utility if available
+    if (window.EchoMeUtils && typeof window.EchoMeUtils.showNotification === 'function') {
+        window.EchoMeUtils.showNotification(message, type);
+        return;
+    }
+    
+    // Fallback: Simple notification without alert
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#6b7280'};
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }
 
 // Make loadTwinList available globally for index.js

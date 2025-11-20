@@ -2,7 +2,13 @@ let currentStep = 0;
 const totalSteps = 13;
 const answers = {};
 
-const API_BASE_URL = 'https://echome-x.onrender.com';
+// Fallback API URL if config is not loaded
+const FALLBACK_API_URL = 'https://echome-x.onrender.com';
+
+// Get API Base URL from centralized config
+const getAPIBaseURL = () => {
+    return window.API_CONFIG?.BASE_URL || FALLBACK_API_URL;
+};
 
 // Make functions available IMMEDIATELY (before any other code)
 window.selectOption = function(button) {
@@ -474,7 +480,7 @@ async function createTwin(twinData) {
         // Show loading step
         showLoadingStep();
         
-        const fullURL = `${API_BASE_URL}/api/create-personality-twin`;
+        const fullURL = `${getAPIBaseURL()}/api/create-personality-twin`;
         
         console.log('🌐 Making API call to:', fullURL);
         console.log('📦 Sending data:', JSON.stringify(twinData, null, 2));
